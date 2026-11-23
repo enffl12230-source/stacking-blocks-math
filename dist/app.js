@@ -1,0 +1,208 @@
+'use strict';
+const $ = selector => document.querySelector(selector);
+const size = 4, maxLayers = 3;
+const emptyBoard = () => Array.from({length:size*size}, () => []);
+const questions = [
+  {text:'맨 앞줄 왼쪽 끝에 한 개를 놓아요. 그 바로 뒤 칸에는 두 개를 쌓아요.', hint:'앞줄 왼쪽 끝에서 시작해요. 두 번째 탑은 그 뒤에 있어요.', answer:[[12,1],[8,2]]},
+  {text:'맨 앞줄 오른쪽 끝에 세 개를 쌓아요. 그 바로 뒤 칸에는 한 개를 놓아요.', hint:'앞줄 오른쪽 끝에 가장 높은 탑이 있어요.', answer:[[15,3],[11,1]]},
+  {text:'맨 앞줄 왼쪽 끝부터 오른쪽으로 한 개, 두 개, 한 개를 차례로 쌓아요.', hint:'앞줄의 세 칸을 써요. 가운데 탑이 가장 높아요.', answer:[[12,1],[13,2],[14,1]]},
+  {text:'맨 뒷줄 오른쪽 끝에 두 개를 쌓아요. 그 바로 왼쪽 칸과 바로 앞 칸에는 한 개씩 놓아요.', hint:'세 탑이 모서리에서 만나도록 만들어요.', answer:[[3,2],[2,1],[7,1]]},
+  {text:'맨 앞줄 왼쪽 끝에 한 개를 놓아요. 한 칸 뒤로, 한 칸 오른쪽으로 가서 두 개를 쌓아요. 거기서 다시 한 칸 뒤로, 한 칸 오른쪽으로 가서 세 개를 쌓아요.', hint:'위에서 보면 세 탑이 비스듬히 이어져요.', answer:[[12,1],[9,2],[6,3]]}
+];
+const lessons = {
+  practice:{title:'연습하기', instruction:'쌓고 싶은 격자 칸이나 블록을 누르세요. 한 칸에 세 층까지 쌓을 수 있어요.', reflect:'내가 만든 모양을 ‘앞’, ‘오른쪽’, ‘위’라는 말을 넣어 소개해 보세요.'},
+  quiz:{title:'퀴즈풀기', instruction:'설명에 맞게 격자에 블록을 쌓으세요. 색은 자유롭게 골라도 좋아요.', reflect:'설명 속 위치와 층수를 하나씩 찾아보세요.'},
+  art:{title:'작품 만들기', instruction:'블록을 작업판으로 끌어오세요. 다른 블록 가까이에서 손을 떼면 윗면이나 옆면에 붙어요.', reflect:'집, 로봇, 꽃밭 중 무엇을 만들었나요? 친구에게 내 작품을 소개해 보세요.'}
+};
+const state = Object.fromEntries(Object.keys(lessons).map(key => [key,{
+  color:'wood', mode:'add', overhead:false, stacks:emptyBoard(), history:[], message:''
+}]));
+let active = 'home', questionIndex = 0, solved = false;
+function currentState() { return state[active]; }
+function tell(message) {
+  currentState().message = message;
+  $('#feedback').textContent = message;
+}
+function saveUndo() {
+  const s = currentState();
+  const items = active === 'art' ? artBlocks : s.stacks;
+  s.history.push(JSON.stringify(items));
+  if (s.history.length > 80) s.history.shift();
+}
+function chooseColor(color) {
+  currentState().color = color;
+  for (const button of $('#palette').children) button.setAttribute('aria-pressed', button.dataset.color === color);
+}
+function buildPalette() {
+  const tray = $('#palette');
+  for (const [color,paint] of Object.entries(paints)) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.color = color;
+    button.className = 'block-option';
+    button.append(icon([color]),document.createTextNode(paint.name));
+    button.addEventListener('click',() => chooseColor(color));
+    button.addEventListener('pointerdown', event => beginDrag(event,color));
+    tray.append(button);
+  }
+}
+function positionName(index) {
+  return ['맨 뒷줄','뒤에서 두 번째 줄','앞에서 두 번째 줄','맨 앞줄'][Math.floor(index/size)]+' '+
+    ['왼쪽 끝','왼쪽에서 두 번째 칸','오른쪽에서 두 번째 칸','오른쪽 끝'][index%size];
+}
+function changeStack(index, fromKeyboard = false) {
+  if (solved && active === 'quiz') { tell('맞았어요! 다음 활동 버튼을 눌러 보세요.'); return; }
+  const s = currentState(), stack = s.stacks[index];
+  if (s.mode === 'add' && stack.length === maxLayers) { tell('이 칸은 벌써 세 층이에요. 다른 칸에 쌓아 보세요.'); return; }
+  if (s.mode === 'remove' && !stack.length) { tell('여기는 빈 칸이에요. 블록이 있는 칸을 눌러 보세요.'); return; }
+  saveUndo();
+  if (s.mode === 'add') stack.push(s.color);
+  else stack.pop();
+  tell(positionName(index)+'에 남은 블록은 '+stack.length+'개예요.');
+  updateBoard();
+  if (fromKeyboard) artBoard.querySelector('[data-cell="'+index+'"][tabindex="0"]').focus();
+}
+function cellGroup(index, keyboard) {
+  const group = svgNode('g',{ 'data-cell':index });
+  if (keyboard) {
+    group.setAttribute('role','button');
+    group.setAttribute('tabindex','0');
+    group.setAttribute('aria-label',positionName(index)+', '+currentState().stacks[index].length+'층');
+  } else group.setAttribute('aria-hidden','true');
+  return group;
+}
+function boardLabel(x,y,value) {
+  const text = svgNode('text',{x,y,'text-anchor':'middle','font-size':16});
+  text.textContent = value; return text;
+}
+function drawGrid() {
+  const {stacks,overhead} = currentState();
+  const picture = document.createDocumentFragment();
+  const towers = [];
+  for (const [index,stack] of stacks.entries()) {
+    const r = Math.floor(index/size), c = index%size;
+    if (overhead) {
+      const x = 143+c*69, y = 32+r*69;
+      const group = cellGroup(index,true);
+      group.append(svgNode('rect',{x,y,width:66,height:66,rx:4,stroke:'#a7bbca',fill:stack.length ? paints[stack[stack.length-1]].top : '#fff'}));
+      if (stack.length) group.append(boardLabel(x+33,y+39,stack.length+'층'));
+      picture.append(group);
+    } else {
+      const x = 280+(c-r)*47, y = 177+(c+r)*22;
+      const tile = cellGroup(index,!stack.length);
+      tile.append(svgNode('polygon',{points:[[x,y-22],[x+47,y],[x,y+22],[x-47,y]],fill:(c+r)%2 ? '#f9fcff' : '#e5eef5',stroke:'#9aafc0','stroke-width':1.5}));
+      picture.append(tile);
+      if (stack.length) {
+        const group = cellGroup(index,true);
+        stack.forEach((color,z) => group.append(cube(x,y-(z+.5)*43,color,47,22,43)));
+        towers.push({depth:r+c,group});
+      }
+    }
+  }
+  for (const tower of towers.sort((a,b) => a.depth-b.depth)) picture.append(tower.group);
+  picture.append(boardLabel(overhead ? 280 : 164,overhead ? 338 : 304,'내 앞'),boardLabel(overhead ? 460 : 400,overhead ? 178 : 304,'오른쪽'));
+  artBoard.replaceChildren(picture);
+}
+artBoard.addEventListener('click', event => {
+  const cell = event.target.closest('[data-cell]');
+  if (cell && active !== 'art') changeStack(Number(cell.dataset.cell));
+});
+artBoard.addEventListener('keydown', event => {
+  const cell = event.target.closest('[data-cell]');
+  if (!cell || !['Enter',' '].includes(event.key)) return;
+  event.preventDefault();
+  changeStack(Number(cell.dataset.cell),true);
+});
+function updateBoard() {
+  const s = currentState(), art = active === 'art';
+  const count = art ? artBlocks.length : s.stacks.reduce((sum,stack) => sum+stack.length,0);
+  if (art) drawArt(); else drawGrid();
+  $('#count').textContent = '블록 '+count+'개';
+  $('#undo').disabled = !s.history.length;
+  $('#clear').disabled = count === 0;
+  $('#view-toggle').textContent = s.overhead ? '입체로 보기' : '위에서 보기';
+  $('#orientation').textContent = art ? '색을 고른 뒤 작업판을 눌러 놓을 수도 있어요.' :
+    (s.overhead ? '숫자는 그 칸의 층수예요.' : '‘내 앞’이라고 쓴 쪽이 맨 앞줄이에요.');
+  for (const button of $('#modes').children) button.setAttribute('aria-pressed',button.dataset.mode === s.mode);
+}
+function showQuestion() {
+  $('#prompt').textContent = questions[questionIndex].text;
+  $('#progress').textContent = (questionIndex+1)+' / '+questions.length+' 문제';
+  $('#next').hidden = !solved;
+  $('#check').hidden = solved;
+  $('#next').textContent = questionIndex === questions.length-1 ? '다시 도전하기' : '다음 문제';
+}
+function reopenQuestion() {
+  if (active !== 'quiz') return;
+  solved = false; showQuestion();
+}
+$('#check').addEventListener('click',() => {
+  const target = Array(size*size).fill(0);
+  for (const [i,h] of questions[questionIndex].answer) target[i] = h;
+  const mismatched = state.quiz.stacks.findIndex((stack,i) => stack.length !== target[i]);
+  solved = mismatched < 0;
+  tell(solved ? (questionIndex === questions.length-1 ? '다섯 문제를 모두 풀었어요!' : '맞았어요! 위치와 층수가 설명과 같아요.') :
+    positionName(mismatched)+'을 다시 살펴보세요.');
+  showQuestion();
+});
+$('#hint').addEventListener('click', () => tell(questions[questionIndex].hint));
+$('#next').addEventListener('click', () => {
+  questionIndex = (questionIndex+1)%questions.length;
+  Object.assign(state.quiz,{stacks:emptyBoard(),history:[],mode:'add'});
+  solved = false; showQuestion(); tell('설명을 읽고 첫 블록을 놓아 보세요.'); updateBoard();
+});
+$('#modes').addEventListener('click',event => {
+  if (!event.target.dataset.mode) return;
+  currentState().mode = event.target.dataset.mode;
+  tell(currentState().mode === 'add' ? '칸을 누르면 한 개씩 쌓여요.' : '칸을 누르면 맨 위 블록이 빠져요.');
+  updateBoard();
+});
+$('#view-toggle').addEventListener('click',() => { currentState().overhead = !currentState().overhead; updateBoard(); });
+$('#clear').addEventListener('click',() => {
+  saveUndo();
+  if (active === 'art') artBlocks.length = 0;
+  else currentState().stacks = emptyBoard();
+  reopenQuestion(); tell('모두 비웠어요. 되돌리면 다시 볼 수 있어요.'); updateBoard();
+});
+$('#undo').addEventListener('click',() => {
+  const s = currentState();
+  if (!s.history.length) return;
+  const previous = JSON.parse(s.history.pop());
+  if (active === 'art') artBlocks.splice(0,artBlocks.length,...previous);
+  else s.stacks = previous;
+  reopenQuestion(); tell('한 번 되돌렸어요.'); updateBoard();
+});
+function route(moveFocus) {
+  cancelDrag();
+  const name = location.hash.slice(1);
+  active = Object.hasOwn(lessons,name) ? name : 'home';
+  const home = active === 'home';
+  $('#home').hidden = !home; $('#workshop').hidden = home;
+  document.title = home ? '쌓기나무 놀이터' : lessons[active].title+' · 쌓기나무 놀이터';
+  if (!home) {
+    const art = active === 'art', quiz = active === 'quiz';
+    $('#activity-title').textContent = lessons[active].title;
+    $('#instruction').textContent = lessons[active].instruction;
+    $('#reflect').textContent = lessons[active].reflect;
+    $('#board-title').textContent = art ? '내 작품' : '쌓기판';
+    for (const el of [$('#question'),$('#quiz-actions')]) el.hidden = !quiz;
+    $('#modes').hidden = art; $('#view-toggle').hidden = art;
+    artBoard.classList.toggle('art-board',art);
+    if (art) {
+      artBoard.setAttribute('tabindex','0');
+      artBoard.setAttribute('aria-label','작업판. 방향키로 위치를 고르고 엔터로 블록을 놓아요.');
+    } else { artBoard.removeAttribute('tabindex'); artBoard.removeAttribute('aria-label'); }
+    for (const el of $('#palette').children) el.classList.toggle('art-tool',art);
+    chooseColor(currentState().color);
+    if (quiz) showQuestion();
+    $('#feedback').textContent = currentState().message;
+    updateBoard();
+  }
+  if (moveFocus) {
+    $(home ? '#home-title' : '#activity-title').focus({preventScroll:true});
+    window.scrollTo(0,0);
+  }
+}
+buildPalette();
+window.addEventListener('hashchange',() => route(true));
+route(false);

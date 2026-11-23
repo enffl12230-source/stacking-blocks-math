@@ -3,163 +3,66 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5f8ff">
-  <meta name="description" content="블록을 쌓고 위치를 말하며 나만의 작품을 만드는 초등 수학 놀이터">
-  <title>쌓기나무 놀이터 | 수학으로 만드는 작은 세상</title>
-  <style>
-    :root{--ink:#17233b;--muted:#65738a;--blue:#4669e8;--blue-dark:#3151c7;--sky:#eaf2ff;--line:#e2e8f2;--paper:#fff;--bg:#f5f8ff;--green:#1c9d74;--red:#d94b51;--yellow:#e6a800;--radius:24px;--shadow:0 18px 50px rgba(32,57,112,.09)}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-rounded,"Arial Rounded MT Bold","Malgun Gothic",system-ui,sans-serif;font-size:16px;line-height:1.55}button{font:inherit;color:inherit}button:focus-visible,a:focus-visible{outline:3px solid #6b8cff;outline-offset:3px}.shell{max-width:1180px;margin:auto;padding:0 28px 56px}.topbar{height:78px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);font-weight:900;letter-spacing:-.04em}.brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:#e8edff;color:#405fdb;font-size:23px;box-shadow:inset 0 -4px 0 #cad5ff}.brand small{display:block;color:#8190a6;font-weight:700;font-size:11px;letter-spacing:.08em}.nav{display:flex;gap:8px}.nav button{border:0;background:transparent;padding:10px 14px;border-radius:14px;color:#66748c;font-weight:800;cursor:pointer}.nav button:hover,.nav button[aria-current="page"]{background:#e8edff;color:#3959d3}.hero{position:relative;display:grid;grid-template-columns:1.15fr .85fr;align-items:center;min-height:220px;padding:34px 44px;margin:0 0 24px;border-radius:30px;background:linear-gradient(112deg,#e8efff 0%,#edf7ff 56%,#e3f8f0 100%);overflow:hidden}.hero:after{content:"";position:absolute;width:270px;height:270px;border-radius:50%;right:9%;top:-128px;background:rgba(255,255,255,.42)}.hero-copy{position:relative;z-index:1}.eyebrow{display:inline-flex;align-items:center;gap:8px;color:#4c67c8;font-size:13px;font-weight:900;letter-spacing:.04em}.eyebrow:before{content:"";width:8px;height:8px;border-radius:50%;background:#66bd99}.hero h1{font-size:clamp(30px,4vw,48px);line-height:1.17;letter-spacing:-.06em;margin:11px 0 12px}.hero p{max-width:560px;margin:0;color:#53647f;font-size:17px}.hero-art{position:relative;height:150px;z-index:1}.hero-cube{position:absolute;width:72px;height:72px;transform:rotate(30deg) skew(-8deg);border-radius:14px;box-shadow:9px 14px 0 rgba(23,50,105,.11)}.hero-cube.one{background:#ec686e;right:45%;top:18px}.hero-cube.two{background:#f4c43c;right:24%;top:52px}.hero-cube.three{background:#48bd91;right:4%;top:4px}.hero-cube:after{content:"";position:absolute;inset:12px;border:2px solid rgba(255,255,255,.55);border-radius:8px}.lesson-note{display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid #dce5fa;background:#fff;border-radius:15px;color:#5b6980;font-size:14px;margin:0 0 22px}.lesson-note b{color:#3e59c6}.lesson-note .note-icon{font-size:20px}
-    .activity{display:none}.activity.active{display:block}.workspace{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.8fr);gap:20px;align-items:stretch}.panel{background:var(--paper);border:1px solid #e8edf5;border-radius:var(--radius);box-shadow:var(--shadow)}.scene-panel{padding:18px 20px 20px;min-width:0}.panel-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.panel-head h2,.side-panel h2{margin:2px 0 4px;font-size:22px;letter-spacing:-.04em}.panel-head p,.side-panel .intro{margin:0;color:var(--muted);font-size:14px}.step-tag{flex:none;background:#eef2ff;color:#4a62c6;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:900}.scene-wrap{margin:14px auto 10px;max-width:680px;border-radius:20px;background:radial-gradient(ellipse at 50% 42%,#f7fbff 0,#eff5ff 70%,#eaf1fc 100%);overflow:hidden}.scene-wrap svg{display:block;width:100%;height:auto;min-height:280px}.floor-tile{fill:#f9fbff;stroke:#cbd7e9;stroke-width:1.2}.floor-tile:hover{fill:#eaf1ff}.tower-left{stroke:rgba(31,49,89,.16);stroke-width:1}.tower-right{stroke:rgba(31,49,89,.21);stroke-width:1}.tower-top{stroke:rgba(255,255,255,.74);stroke-width:1.7}.seam{stroke:rgba(255,255,255,.66);stroke-width:1.25;fill:none}.scene-caption{display:flex;justify-content:space-between;gap:12px;color:#77869c;font-size:12px;padding:0 8px}.scene-caption strong{color:#536482}.grid-card{padding:17px 18px 18px}.side-panel{padding:21px;display:flex;flex-direction:column}.side-panel .intro{line-height:1.65}.control-label{display:block;font-size:13px;font-weight:900;color:#66758e;margin:18px 0 9px}.palette{display:flex;gap:10px}.color-btn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;padding:8px 12px 8px 9px;border-radius:13px;cursor:pointer;font-size:14px;font-weight:800;transition:.15s}.color-btn:hover{transform:translateY(-1px);border-color:#bac8e5}.color-btn[aria-pressed="true"]{border:2px solid #536dde;padding:7px 11px 7px 8px;box-shadow:0 0 0 3px #ebefff}.swatch{width:21px;height:21px;border-radius:7px;display:inline-block;box-shadow:inset 0 -3px 0 rgba(0,0,0,.12)}.red-swatch{background:#eb666d}.yellow-swatch{background:#f2c43c}.green-swatch{background:#45b98b}.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:#f1f4fa;border-radius:14px}.mode-switch button{border:0;border-radius:10px;background:transparent;padding:9px 8px;font-weight:850;color:#718097;cursor:pointer}.mode-switch button[aria-pressed="true"]{background:#fff;color:#4059c4;box-shadow:0 2px 9px rgba(32,57,112,.1)}.map-grid{display:grid;grid-template-columns:repeat(4,minmax(42px,1fr));gap:7px;max-width:330px;margin:12px auto 4px}.map-cell{position:relative;min-height:64px;border:1px solid #dde5f2;border-radius:12px;background:#f9fbff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px;transition:transform .12s,border-color .12s,background .12s}.map-cell:hover{transform:translateY(-2px);border-color:#aab9e2;background:#f1f5ff}.map-cell:active{transform:scale(.97)}.map-cell.empty .cell-cubes{opacity:.25}.map-cell .cell-cubes{display:flex;align-items:flex-end;gap:2px;height:20px}.mini-cube{width:13px;height:13px;border-radius:3px 3px 4px 4px;background:#ec686e;box-shadow:inset 0 -3px 0 rgba(0,0,0,.14)}.mini-cube:nth-child(2){transform:translateY(-3px)}.mini-cube:nth-child(3){transform:translateY(-6px)}.mini-cube:nth-child(n+4){display:none}.cell-meta{font-size:11px;color:#78869c;font-weight:800}.map-cell.warning{animation:pulse .75s ease-in-out 2;border-color:#e5aa36;background:#fff8e6}.map-cell.correct-cell{border-color:#66bd99;background:#edfaf5}@keyframes pulse{50%{box-shadow:0 0 0 4px rgba(230,168,0,.17)}}.map-directions{max-width:330px;display:flex;justify-content:space-between;align-items:center;margin:auto;color:#8491a5;font-size:11px;font-weight:800}.action-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.btn{border:0;border-radius:13px;padding:11px 16px;font-size:14px;font-weight:900;cursor:pointer;transition:transform .12s,filter .12s}.btn:hover{filter:brightness(.97);transform:translateY(-1px)}.btn:active{transform:scale(.98)}.btn-primary{background:#4e68dd;color:#fff;box-shadow:0 5px 0 #3651c7}.btn-soft{background:#edf1ff;color:#4960c3}.btn-quiet{background:#f1f4f8;color:#66758b}.btn-danger{background:#fff0f0;color:#c34b51}.selected-color{display:flex;align-items:center;gap:9px;color:#78859b;font-size:13px;margin-top:13px}.selected-color b{color:var(--ink)}.status{min-height:27px;margin-top:14px;color:#50627e;font-size:14px;font-weight:750}.status.good{color:#16835f}.status.try{color:#ad7712}.tip{margin-top:auto;padding:14px 15px;border-radius:15px;background:#f3f8ff;color:#5c6c83;font-size:13px}.tip b{display:block;color:#405cbd;margin-bottom:3px}.section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:28px 0 14px}.section-title h2{margin:0;font-size:24px;letter-spacing:-.04em}.section-title p{margin:4px 0 0;color:var(--muted);font-size:14px}.standards{display:flex;gap:10px;flex-wrap:wrap}.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid #dfe6f1;background:#fff;border-radius:999px;padding:9px 13px;color:#66758c;font-size:13px}.pill b{color:#465ec4}.quiz-top{display:flex;gap:12px;align-items:center;margin-bottom:15px}.quiz-number{flex:none;width:46px;height:46px;display:grid;place-items:center;background:#e8edff;border-radius:15px;color:#4a63cf;font-weight:950}.prompt-box{padding:15px 17px;background:#f7f8ff;border:1px solid #e6eaff;border-radius:16px;color:#384962;font-size:17px;font-weight:800;line-height:1.55}.prompt-box .quote{color:#4f66cc}.quiz-actions{display:flex;gap:9px;flex-wrap:wrap}.quiz-success{padding:14px;border-radius:14px;background:#ebfaf4;color:#16835f;font-weight:850}.quiz-complete{text-align:center;padding:28px 10px}.quiz-complete .big-star{font-size:50px}.quiz-complete h2{margin:8px 0}.art-prompts{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}.prompt-chip{border:1px solid #e2e8f2;background:#f8faff;padding:8px 11px;border-radius:999px;color:#60708a;font-size:13px;font-weight:800;cursor:pointer}.prompt-chip:hover{background:#edf2ff;color:#4861cb}.footer{border-top:1px solid #e2e8f0;margin-top:34px;padding-top:19px;display:flex;justify-content:space-between;gap:12px;color:#8794a8;font-size:12px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    @media(max-width:850px){.shell{padding:0 18px 40px}.workspace{grid-template-columns:1fr}.hero{padding:28px 30px;grid-template-columns:1fr .55fr}.hero-art{height:130px}.side-panel{min-height:unset}.tip{margin-top:20px}.scene-wrap svg{min-height:0}}
-    @media(max-width:560px){.shell{padding:0 12px 30px}.topbar{height:auto;min-height:68px;align-items:flex-start;padding-top:12px;flex-direction:column;gap:8px}.brand{font-size:14px}.brand-mark{width:36px;height:36px}.nav{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.nav button{padding:9px 4px;font-size:13px}.hero{min-height:190px;padding:23px 20px;margin-bottom:16px;grid-template-columns:1fr}.hero h1{font-size:32px;max-width:320px}.hero p{font-size:15px;max-width:300px}.hero-art{position:absolute;right:0;bottom:2px;width:45%;height:90px;opacity:.75}.hero-cube{width:45px;height:45px;border-radius:10px}.hero-cube.one{top:20px;right:47%}.hero-cube.two{top:34px;right:23%}.hero-cube.three{top:4px;right:0}.lesson-note{font-size:12px;padding:10px 12px;margin-bottom:15px}.scene-panel{padding:15px 12px}.panel-head h2,.side-panel h2{font-size:20px}.panel-head p,.side-panel .intro{font-size:13px}.step-tag{font-size:11px;padding:5px 8px}.scene-wrap{margin:10px auto}.scene-wrap svg{min-height:210px}.scene-caption{font-size:10px}.grid-card{padding:14px 12px}.side-panel{padding:17px}.map-grid{gap:5px;max-width:290px}.map-cell{min-height:57px;border-radius:10px}.section-title{align-items:flex-start;flex-direction:column;margin:23px 0 11px}.section-title h2{font-size:21px}.action-row .btn{flex:1}.standards{gap:7px}.pill{font-size:11px;padding:8px 10px}.footer{flex-direction:column}.prompt-box{font-size:15px}.color-btn{padding:7px 9px;font-size:13px}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
-  </style>
+  <meta name="theme-color" content="#f7f8f5">
+  <meta name="description" content="격자를 눌러 쌓고, 설명을 읽고, 나만의 쌓기나무 작품을 만들어요.">
+  <title>쌓기나무 놀이터</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="drawing.js" defer></script>
+  <script src="art.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <a class="brand" href="#home" aria-label="쌓기나무 놀이터 처음으로"><span class="brand-mark" aria-hidden="true">▦</span><span>쌓기나무 놀이터<small>수학으로 만드는 작은 세상</small></span></a>
-      <nav class="nav" aria-label="활동 메뉴">
-        <button type="button" data-view="build" aria-current="page">쌓기 연습</button>
-        <button type="button" data-view="quiz">설명 퀴즈</button>
-        <button type="button" data-view="art">미술 작품</button>
+  <header class="mast">
+    <a href="#home" class="brand"><span class="logo" id="logo" aria-hidden="true"></span>쌓기나무 놀이터</a>
+    <span class="subject">초등 2학년 수학</span>
+  </header>
+  <main>
+    <section id="home" aria-labelledby="home-title">
+      <div class="hero">
+        <div class="hero-copy">
+          <h1 id="home-title" tabindex="-1">쌓기나무<br><em>놀이터</em></h1>
+          <p>나무를 쌓고, 모양을 말하고,<br>나만의 작품을 만들어 봐요.</p>
+        </div>
+        <svg id="village" viewBox="0 0 540 320" role="img" aria-label="나무색, 빨간색, 노란색 쌓기나무로 만든 작은 성"></svg>
+      </div>
+      <nav class="choices" aria-label="활동 고르기">
+        <a href="#practice" class="choice practice"><span class="activity-icon" data-icon="practice"></span><strong>연습하기</strong><span>격자를 눌러 차곡차곡 쌓아요.</span></a>
+        <a href="#quiz" class="choice quiz"><span class="activity-icon" data-icon="quiz"></span><strong>퀴즈풀기</strong><span>설명을 읽고 모양을 만들어요.</span></a>
+        <a href="#art" class="choice art"><span class="activity-icon" data-icon="art"></span><strong>작품 만들기</strong><span>블록을 끌어 자유롭게 붙여요.</span></a>
       </nav>
-    </header>
-    <section class="hero" id="home" aria-labelledby="hero-title">
-      <div class="hero-copy"><span class="eyebrow">오늘의 수학 탐험 · 도형과 측정</span><h1 id="hero-title">쌓고, 말하고,<br>멋지게 만들어 봐요!</h1><p>작은 블록 하나가 모이면 멋진 모양이 돼요.<br>앞과 옆을 살펴보며 나만의 세상을 만들어 봐요.</p></div>
-      <div class="hero-art" aria-hidden="true"><i class="hero-cube one"></i><i class="hero-cube two"></i><i class="hero-cube three"></i></div>
     </section>
-    <div class="lesson-note"><span class="note-icon" aria-hidden="true">💡</span><span><b>수학 약속</b> · 격자 아래쪽이 내 앞, 오른쪽이 내 오른쪽이에요.</span></div>
-
-    <main>
-      <section class="activity active" id="view-build" aria-labelledby="build-title">
-        <div class="workspace">
-          <div class="panel scene-panel">
-            <div class="panel-head"><div><h2 id="build-title">블록을 쌓아 보아요</h2><p>오른쪽 격자 칸을 눌러 한 개씩 쌓거나 빼요.</p></div><span class="step-tag">만들기 01</span></div>
-            <div class="scene-wrap"><svg id="scene-build" viewBox="0 0 640 390" role="img" aria-label="쌓기나무 입체 미리보기"></svg></div>
-            <div class="scene-caption"><span>입체 모양 미리보기</span><strong id="build-count">블록 0개</strong></div>
-          </div>
-          <aside class="panel side-panel" aria-label="블록 쌓기 도구">
-            <h2>어떤 블록을 쓸까요?</h2><p class="intro">색을 고른 뒤 격자 칸을 눌러요. 칸 하나에는 6층까지 쌓을 수 있어요.</p>
-            <span class="control-label">블록 색</span><div class="palette" role="group" aria-label="블록 색 선택">
-              <button type="button" class="color-btn" data-color="red" aria-pressed="true"><i class="swatch red-swatch"></i>빨강</button>
-              <button type="button" class="color-btn" data-color="yellow" aria-pressed="false"><i class="swatch yellow-swatch"></i>노랑</button>
-              <button type="button" class="color-btn" data-color="green" aria-pressed="false"><i class="swatch green-swatch"></i>초록</button>
-            </div>
-            <span class="control-label">무엇을 할까요?</span><div class="mode-switch" role="group" aria-label="쌓기 또는 빼기">
-              <button type="button" data-mode="add" aria-pressed="true">쌓기 +</button><button type="button" data-mode="remove" aria-pressed="false">빼기 −</button>
-            </div>
-            <div class="map-directions" aria-hidden="true"><span>뒤</span><span>오른쪽 →</span></div><div class="map-grid" data-grid="build" role="group" aria-label="쌓기나무 바닥 격자"></div><div class="map-directions" aria-hidden="true"><span>← 왼쪽</span><span>내 앞</span></div>
-            <div class="selected-color"><i class="swatch red-swatch" id="current-swatch"></i><span>지금 고른 색: <b id="current-color-name">빨강</b></span></div>
-            <div class="action-row"><button type="button" class="btn btn-quiet" data-clear="build">모두 비우기</button></div>
-            <div class="status" id="build-status" aria-live="polite">격자 칸을 눌러 첫 블록을 놓아 보세요.</div>
-            <div class="tip"><b>생각해 볼까요?</b>한 칸에 몇 개를 쌓았나요? 앞에서 볼 때 모양이 어떻게 보이나요?</div>
-          </aside>
+    <section id="workshop" hidden aria-labelledby="activity-title">
+      <div class="activity-heading">
+        <div><a class="back" href="#home">처음 화면</a><h1 id="activity-title" tabindex="-1"></h1></div>
+        <p id="instruction"></p>
+      </div>
+      <div class="layout">
+        <div class="bench">
+          <div class="bench-head"><h2 id="board-title">쌓기판</h2><span id="count"></span></div>
+          <svg id="board" viewBox="0 0 560 380" role="group" aria-labelledby="board-title"></svg>
+          <div class="bench-foot"><span id="orientation"></span><button id="view-toggle" type="button">위에서 보기</button></div>
         </div>
-        <div class="section-title"><div><h2>오늘 배울 수학</h2><p>블록 모양을 만들고, 위치와 방향을 말해요.</p></div></div>
-        <div class="standards"><span class="pill"><b>[2수03-02]</b> 입체도형의 모양</span><span class="pill">앞 · 오른쪽 · 위</span><span class="pill">층수와 위치</span></div>
-      </section>
-
-      <section class="activity" id="view-quiz" aria-labelledby="quiz-title">
-        <div class="workspace">
-          <div class="panel scene-panel">
-            <div class="panel-head"><div><h2 id="quiz-title">설명을 읽고 쌓아 봐요</h2><p>말로 들은 위치를 격자에서 찾아 블록을 놓아 보세요.</p></div><span class="step-tag" id="quiz-tag">도전 01 / 05</span></div>
-            <div class="scene-wrap"><svg id="scene-quiz" viewBox="0 0 640 390" role="img" aria-label="퀴즈 쌓기나무 입체 미리보기"></svg></div>
-            <div class="scene-caption"><span>내가 만든 모양</span><strong id="quiz-count">블록 0개</strong></div>
+        <aside class="tools">
+          <div id="question" hidden>
+            <span id="progress"></span><h2>설명 카드</h2><p id="prompt"></p>
           </div>
-          <aside class="panel side-panel" id="quiz-panel">
-            <div class="quiz-top"><div class="quiz-number" id="quiz-badge">01</div><div><h2>설명 카드</h2><p class="intro">문장을 천천히 읽고 쌓아 봐요.</p></div></div>
-            <div class="prompt-box" id="quiz-prompt"></div>
-            <span class="control-label">블록 색</span><div class="palette" role="group" aria-label="퀴즈 블록 색 선택">
-              <button type="button" class="color-btn" data-color="red" aria-pressed="true"><i class="swatch red-swatch"></i>빨강</button><button type="button" class="color-btn" data-color="yellow" aria-pressed="false"><i class="swatch yellow-swatch"></i>노랑</button><button type="button" class="color-btn" data-color="green" aria-pressed="false"><i class="swatch green-swatch"></i>초록</button>
-            </div>
-            <span class="control-label">격자 칸을 눌러 쌓아요</span><div class="map-directions" aria-hidden="true"><span>뒤</span><span>오른쪽 →</span></div><div class="map-grid" data-grid="quiz" role="group" aria-label="퀴즈 쌓기나무 바닥 격자"></div><div class="map-directions" aria-hidden="true"><span>← 왼쪽</span><span>내 앞</span></div>
-            <div class="quiz-actions action-row"><button type="button" class="btn btn-primary" id="check-answer">정답 확인</button><button type="button" class="btn btn-soft" id="quiz-hint">힌트</button><button type="button" class="btn btn-quiet" data-clear="quiz">다시 쌓기</button></div>
-            <div class="status" id="quiz-status" aria-live="polite">설명에 나온 자리를 찾아볼까요?</div><button type="button" class="btn btn-primary" id="next-question" hidden>다음 문제</button>
-            <div class="tip"><b>위치 말하기</b>“내 앞쪽”, “오른쪽”, “바로 뒤”가 격자에서 어디인지 찾아보세요.</div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="activity" id="view-art" aria-labelledby="art-title">
-        <div class="workspace">
-          <div class="panel scene-panel">
-            <div class="panel-head"><div><h2 id="art-title">나만의 쌓기 작품</h2><p>블록의 색과 높이를 골라 자유롭게 꾸며요.</p></div><span class="step-tag">상상하기 03</span></div>
-            <div class="scene-wrap"><svg id="scene-art" viewBox="0 0 640 390" role="img" aria-label="미술 작품 쌓기나무 입체 미리보기"></svg></div>
-            <div class="scene-caption"><span>내 작품 미리보기</span><strong id="art-count">블록 0개</strong></div>
+          <h2 id="palette-title">블록 고르기</h2>
+          <div id="palette" role="group" aria-labelledby="palette-title"></div>
+          <div class="modes" id="modes" role="group" aria-label="쌓기 도구">
+            <button data-mode="add" aria-pressed="true">쌓기</button>
+            <button data-mode="remove" aria-pressed="false">빼기</button>
           </div>
-          <aside class="panel side-panel">
-            <h2>무엇을 만들어 볼까요?</h2><p class="intro">떠오르는 모양을 격자에 쌓아 보세요. 칸을 누를 때마다 블록이 한 개씩 올라가요.</p>
-            <div class="art-prompts" aria-label="작품 아이디어"><button class="prompt-chip" type="button" data-idea="집">🏠 집</button><button class="prompt-chip" type="button" data-idea="로봇">🤖 로봇</button><button class="prompt-chip" type="button" data-idea="정원">🌷 정원</button></div>
-            <div class="prompt-box" id="art-idea">마음에 드는 작품을 골라 쌓아 봐요.</div>
-            <span class="control-label">블록 색</span><div class="palette" role="group" aria-label="작품 블록 색 선택">
-              <button type="button" class="color-btn" data-color="red" aria-pressed="true"><i class="swatch red-swatch"></i>빨강</button><button type="button" class="color-btn" data-color="yellow" aria-pressed="false"><i class="swatch yellow-swatch"></i>노랑</button><button type="button" class="color-btn" data-color="green" aria-pressed="false"><i class="swatch green-swatch"></i>초록</button>
-            </div>
-            <span class="control-label">무엇을 할까요?</span><div class="mode-switch" role="group" aria-label="쌓기 또는 빼기"><button type="button" data-mode="add" aria-pressed="true">쌓기 +</button><button type="button" data-mode="remove" aria-pressed="false">빼기 −</button></div>
-            <div class="map-directions" aria-hidden="true"><span>뒤</span><span>오른쪽 →</span></div><div class="map-grid" data-grid="art" role="group" aria-label="작품 쌓기나무 바닥 격자"></div><div class="map-directions" aria-hidden="true"><span>← 왼쪽</span><span>내 앞</span></div>
-            <div class="action-row"><button type="button" class="btn btn-danger" data-clear="art">작품 비우기</button></div><div class="status" id="art-status" aria-live="polite">색을 골라 작품을 시작해 보세요.</div>
-            <div class="tip"><b>작품 설명하기</b>“초록 블록은 뒤쪽에 있어요.”처럼 위치와 방향을 넣어 소개해요.</div>
-          </aside>
-        </div>
-      </section>
-    </main>
-    <footer class="footer"><span>초등 수학 · 도형과 측정</span><span>블록으로 살펴보는 [2수03-02]</span></footer>
-  </div>
-  <script>
-    (function(){
-      'use strict';
-      var SIZE=4,MAX_HEIGHT=6;
-      var COLORS={red:{name:'빨강',top:'#f58b8e',left:'#df555e',right:'#c9404b',mini:'#eb666d'},yellow:{name:'노랑',top:'#ffdc6d',left:'#e8b52f',right:'#c99413',mini:'#f2c43c'},green:{name:'초록',top:'#78d9b1',left:'#3eae83',right:'#288d68',mini:'#45b98b'}};
-      function emptyStacks(){return Array.from({length:SIZE},function(){return Array.from({length:SIZE},function(){return [];});});}
-      var models={build:emptyStacks(),quiz:emptyStacks(),art:emptyStacks()};
-      var activeColor={build:'red',quiz:'red',art:'red'},activeMode={build:'add',art:'add'},quizIndex=0,quizChecked=false;
-      var quizzes=[
-        {prompt:'내 앞줄 왼쪽 칸에 블록 한 개를 놓아요. 그 바로 뒤 칸에는 두 개를 쌓아요.',hint:'아래쪽 줄이 내 앞줄이에요. 앞줄의 왼쪽 칸부터 찾아보세요.',stacks:[[3,0,1],[2,0,2]]},
-        {prompt:'내 앞줄 오른쪽 끝에 세 개를 쌓아요. 그 바로 뒤 칸에는 한 개를 놓아요.',hint:'오른쪽 끝 칸은 격자의 오른쪽 마지막 칸이에요.',stacks:[[3,3,3],[2,3,1]]},
-        {prompt:'내 앞줄에 왼쪽부터 한 개, 두 개, 한 개를 나란히 놓아요.',hint:'앞줄에서 왼쪽부터 세 칸을 사용해요. 네 번째 칸은 비워 둬요.',stacks:[[3,0,1],[3,1,2],[3,2,1]]},
-        {prompt:'오른쪽 세로줄에 블록을 놓아요. 내 앞쪽 칸은 두 개, 그 뒤 칸은 한 개예요.',hint:'오른쪽 세로줄은 격자의 맨 오른쪽 칸들을 위아래로 이은 줄이에요.',stacks:[[3,3,2],[2,3,1]]},
-        {prompt:'왼쪽 앞에서 시작해 뒤쪽으로 대각선 모양을 만들어요. 앞에서부터 한 개, 두 개, 세 개를 쌓아요.',hint:'세 칸이 계단처럼 이어져요. 한 칸씩 뒤로 갈 때마다 한 층 더 높아져요.',stacks:[[3,0,1],[2,1,2],[1,2,3]]}
-      ];
-      var statusMessages={build:document.getElementById('build-status'),quiz:document.getElementById('quiz-status'),art:document.getElementById('art-status')};
-      function announce(key,text,kind){var el=statusMessages[key];el.textContent=text;el.className='status'+(kind?' '+kind:'');}
-      function cubeTotal(model){return model.reduce(function(sum,row){return sum+row.reduce(function(s,stack){return s+stack.length;},0);},0);}
-      function positionName(r,c){var row=r===3?'내 앞줄':r===2?'앞에서 두 번째 줄':r===1?'앞에서 세 번째 줄':'뒤쪽 줄';var col=c===0?'왼쪽':c===3?'오른쪽 끝':c===1?'왼쪽에서 두 번째':'오른쪽에서 두 번째';return row+' '+col;}
-      function renderGrid(key){var holder=document.querySelector('[data-grid="'+key+'"]');holder.innerHTML='';for(var r=0;r<SIZE;r++){for(var c=0;c<SIZE;c++){(function(row,col){var stack=models[key][row][col],btn=document.createElement('button');btn.type='button';btn.className='map-cell'+(stack.length?'':' empty');btn.setAttribute('aria-label',positionName(row,col)+', '+(stack.length?stack.length+'층':'비어 있음')+'; 눌러 '+(key==='quiz'?'블록을':'블록을')+(key==='quiz'?' 쌓기':' 쌓거나 빼기'));
-            var cubes=document.createElement('span');cubes.className='cell-cubes';for(var i=0;i<Math.min(stack.length,3);i++){var mini=document.createElement('i');mini.className='mini-cube';mini.style.background=COLORS[stack[i]].mini;cubes.appendChild(mini);}var meta=document.createElement('span');meta.className='cell-meta';meta.textContent=stack.length?(stack.length+'층'):'빈 칸';btn.appendChild(cubes);btn.appendChild(meta);btn.addEventListener('click',function(){tapCell(key,row,col);});holder.appendChild(btn);})(r,c);}}}
-      function svgEl(name,attrs){var el=document.createElementNS('http://www.w3.org/2000/svg',name);Object.keys(attrs).forEach(function(k){el.setAttribute(k,attrs[k]);});return el;}
-      function points(items){return items.map(function(p){return p[0]+','+p[1];}).join(' ');}
-      function renderScene(key){var svg=document.getElementById('scene-'+key),model=models[key],originX=320,originY=84,halfW=29,halfD=14,unit=34;while(svg.firstChild)svg.removeChild(svg.firstChild);
-        svg.appendChild(svgEl('ellipse',{cx:'320',cy:'292',rx:'227',ry:'48',fill:'#dbe6f5',opacity:'.48'}));
-        for(var r=0;r<SIZE;r++){for(var c=0;c<SIZE;c++){var x=originX+(c-r)*halfW,y=originY+(c+r)*halfD+80;var tile=[[x,y-halfD],[x+halfW,y],[x,y+halfD],[x-halfW,y]];svg.appendChild(svgEl('polygon',{points:points(tile),class:'floor-tile'}));}}
-        var coords=[];for(var rr=0;rr<SIZE;rr++)for(var cc=0;cc<SIZE;cc++)if(model[rr][cc].length)coords.push({r:rr,c:cc});coords.sort(function(a,b){return (a.r+a.c)-(b.r+b.c)||a.c-b.c;});
-        coords.forEach(function(cell){var stack=model[cell.r][cell.c],h=stack.length,x=originX+(cell.c-cell.r)*halfW,baseY=originY+(cell.c+cell.r)*halfD+80;
-          for(var level=0;level<h;level++){var color=COLORS[stack[level]],y=baseY-(level+1)*unit,T=[x,y-halfD],R=[x+halfW,y],B=[x,y+halfD],L=[x-halfW,y],RB=[R[0],R[1]+unit],BB=[B[0],B[1]+unit],LB=[L[0],L[1]+unit];
-            svg.appendChild(svgEl('polygon',{points:points([L,B,BB,LB]),fill:color.left,class:'tower-left'}));svg.appendChild(svgEl('polygon',{points:points([B,R,RB,BB]),fill:color.right,class:'tower-right'}));if(level===h-1)svg.appendChild(svgEl('polygon',{points:points([T,R,B,L]),fill:color.top,class:'tower-top'}));
-          }
-        });
-        svg.setAttribute('aria-label',key==='quiz'?'내가 쌓은 퀴즈 모양, 총 '+cubeTotal(model)+'개':'쌓기나무 입체 모양, 총 '+cubeTotal(model)+'개');
-      }
-      function renderKey(key){renderGrid(key);renderScene(key);var count=document.getElementById(key+'-count');count.textContent='블록 '+cubeTotal(models[key])+'개';}
-      function tapCell(key,row,col){var stack=models[key][row][col];if(key==='quiz'&&quizChecked){announce(key,'다음 문제로 가거나 다시 쌓기를 눌러 주세요.','try');return;}if(key==='quiz'||activeMode[key]==='add'){if(stack.length>=MAX_HEIGHT){announce(key,'이 칸에는 여섯 층까지 쌓을 수 있어요.','try');return;}stack.push(activeColor[key]);announce(key,positionName(row,col)+'에 '+stack.length+'층으로 쌓았어요.');}else{if(!stack.length){announce(key,'이 칸은 비어 있어요. 다른 칸을 골라 보세요.','try');return;}stack.pop();announce(key,positionName(row,col)+'에서 한 개를 뺐어요.');}renderKey(key);}
-      function setColor(key,color){activeColor[key]=color;var group=document.querySelectorAll('#view-'+key+' .color-btn');group.forEach(function(btn){btn.setAttribute('aria-pressed',String(btn.dataset.color===color));});if(key==='build'){document.getElementById('current-color-name').textContent=COLORS[color].name;document.getElementById('current-swatch').className='swatch '+color+'-swatch';}if(key==='quiz')document.querySelectorAll('#view-quiz .map-cell .mini-cube').forEach(function(el){});}
-      function setMode(key,mode){activeMode[key]=mode;document.querySelectorAll('#view-'+key+' [data-mode]').forEach(function(btn){btn.setAttribute('aria-pressed',String(btn.dataset.mode===mode));});announce(key,mode==='add'?'격자를 누르면 블록이 한 개씩 쌓여요.':'격자를 누르면 블록이 한 개씩 빠져요.');}
-      function clearModel(key){models[key]=emptyStacks();if(key==='quiz'){quizChecked=false;document.getElementById('next-question').hidden=true;}renderKey(key);announce(key,key==='art'?'작품을 비웠어요. 새로운 모양을 만들어 볼까요?':key==='quiz'?'다시 쌓아 보세요. 설명을 한 번 더 읽어 볼까요?':'격자를 눌러 첫 블록을 놓아 보세요.');}
-      function showView(name){document.querySelectorAll('.activity').forEach(function(section){section.classList.toggle('active',section.id==='view-'+name);});document.querySelectorAll('.nav [data-view]').forEach(function(btn){if(btn.dataset.view===name)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current');});if(name==='quiz')renderQuizPrompt();}
-      document.querySelectorAll('.nav [data-view]').forEach(function(btn){btn.addEventListener('click',function(){showView(btn.dataset.view);window.scrollTo({top:0,behavior:'smooth'});});});
-      document.querySelectorAll('.color-btn').forEach(function(btn){btn.addEventListener('click',function(){var key=btn.closest('.activity').id.replace('view-','');setColor(key,btn.dataset.color);});});
-      document.querySelectorAll('[data-mode]').forEach(function(btn){btn.addEventListener('click',function(){var key=btn.closest('.activity').id.replace('view-','');setMode(key,btn.dataset.mode);});});
-      document.querySelectorAll('[data-clear]').forEach(function(btn){btn.addEventListener('click',function(){clearModel(btn.dataset.clear);});});
-      function renderQuizPrompt(){var q=quizzes[quizIndex];document.getElementById('quiz-tag').textContent='도전 '+String(quizIndex+1).padStart(2,'0')+' / '+String(quizzes.length).padStart(2,'0');document.getElementById('quiz-badge').textContent=String(quizIndex+1).padStart(2,'0');document.getElementById('quiz-prompt').textContent=q.prompt;}
-      document.getElementById('quiz-hint').addEventListener('click',function(){announce('quiz',quizzes[quizIndex].hint,'try');});
-      document.getElementById('check-answer').addEventListener('click',function(){var target=emptyStacks();quizzes[quizIndex].stacks.forEach(function(item){target[item[0]][item[1]]=Array.from({length:item[2]},function(){return 'red';});});var correct=true,first=null;for(var r=0;r<SIZE;r++)for(var c=0;c<SIZE;c++){if(models.quiz[r][c].length!==target[r][c].length){correct=false;if(!first)first={r:r,c:c};}}
-        document.querySelectorAll('#view-quiz .map-cell').forEach(function(cell){cell.classList.remove('warning','correct-cell');});quizChecked=correct;
-        if(correct){document.querySelectorAll('#view-quiz .map-cell').forEach(function(cell,index){var r=Math.floor(index/SIZE),c=index%SIZE;if(target[r][c].length)cell.classList.add('correct-cell');});announce('quiz','맞았어요! 설명에 나온 위치와 층수를 잘 찾았네요.','good');document.getElementById('next-question').hidden=false;document.getElementById('next-question').textContent=quizIndex===quizzes.length-1?'처음부터 다시 하기':'다음 문제';}
-        else{var cellIndex=first.r*SIZE+first.c,cell=document.querySelectorAll('#view-quiz .map-cell')[cellIndex];cell.classList.add('warning');announce('quiz','아직 조금 달라요. '+positionName(first.r,first.c)+'을(를) 다시 살펴보세요.','try');document.getElementById('next-question').hidden=true;}
-      });
-      document.getElementById('next-question').addEventListener('click',function(){if(quizIndex===quizzes.length-1){quizIndex=0;announce('quiz','다섯 문제를 모두 풀었어요! 다시 도전해도 좋아요.','good');}else quizIndex++;models.quiz=emptyStacks();quizChecked=false;renderQuizPrompt();renderKey('quiz');document.getElementById('next-question').hidden=true;if(quizIndex===0)announce('quiz','새 도전! 설명을 읽고 쌓아 보세요.');else announce('quiz','다음 설명을 읽고 쌓아 보세요.');});
-      document.querySelectorAll('.prompt-chip').forEach(function(btn){btn.addEventListener('click',function(){var prompts={집:'지붕은 어떤 색으로 쌓을까요? 문과 창문도 만들어 봐요.',로봇:'머리와 몸통의 높이를 다르게 해 로봇을 만들어 봐요.',정원:'꽃들이 서로 다른 높이로 자라는 정원을 꾸며 봐요.'};document.getElementById('art-idea').textContent=prompts[btn.dataset.idea];announce('art',btn.dataset.idea+'을(를) 떠올리며 색과 높이를 골라 보세요.');});});
-      ['build','quiz','art'].forEach(renderKey);renderQuizPrompt();
-    })();
-  </script>
+          <div id="quiz-actions" hidden>
+            <button class="primary" id="check">정답 확인</button><button id="hint">힌트</button>
+            <button class="primary" id="next" hidden>다음 문제</button>
+          </div>
+          <p id="feedback" role="status" aria-live="polite"></p>
+          <div class="secondary"><button id="undo">한 번 되돌리기</button><button id="clear">모두 비우기</button></div>
+        </aside>
+      </div>
+      <p id="reflect" class="reflect"></p>
+    </section>
+  </main>
+  <footer><span>초등 수학 · 도형과 측정</span><span>[2수03-02] 입체도형의 모양</span></footer>
 </body>
 </html>
