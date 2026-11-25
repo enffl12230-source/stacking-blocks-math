@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="drawing.js" defer></script>
   <script src="art.js" defer></script>
+  <script src="festival.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -21,21 +22,33 @@
       <div class="hero">
         <div class="hero-copy">
           <h1 id="home-title" tabindex="-1">쌓기나무<br><em>놀이터</em></h1>
-          <p>나무를 쌓고, 모양을 말하고,<br>나만의 작품을 만들어 봐요.</p>
+          <p>오늘 밤은 숲속 별빛 축제!<br>세 가지 놀이에서 축제 도장을 모아요.</p>
         </div>
-        <svg id="village" viewBox="0 0 540 320" role="img" aria-label="나무색, 빨간색, 노란색 쌓기나무로 만든 작은 성"></svg>
+        <svg id="village" viewBox="0 0 540 320" role="img" aria-label="별빛 아래에서 쌓기나무 축제를 기다리는 토끼"></svg>
       </div>
       <nav class="choices" aria-label="활동 고르기">
-        <a href="#practice" class="choice practice"><span class="activity-icon" data-icon="practice"></span><strong>연습하기</strong><span>격자를 눌러 차곡차곡 쌓아요.</span></a>
-        <a href="#quiz" class="choice quiz"><span class="activity-icon" data-icon="quiz"></span><strong>퀴즈풀기</strong><span>설명을 읽고 모양을 만들어요.</span></a>
-        <a href="#art" class="choice art"><span class="activity-icon" data-icon="art"></span><strong>작품 만들기</strong><span>블록을 끌어 자유롭게 붙여요.</span></a>
+        <a href="#practice" class="choice practice"><span class="activity-icon" data-scene="practice"></span><strong>토끼의 당근 계단</strong><span>연습하기 · 토끼를 당근까지 데려다줘요.</span></a>
+        <a href="#quiz" class="choice quiz"><span class="activity-icon" data-scene="quiz"></span><strong>별빛 보물찾기</strong><span>퀴즈풀기 · 별 다섯 개로 상자를 열어요.</span></a>
+        <a href="#art" class="choice art"><span class="activity-icon" data-scene="art"></span><strong>축제 장난감 가게</strong><span>작품 만들기 · 손님이 주문한 장난감을 만들어요.</span></a>
       </nav>
+      <section class="passport" aria-labelledby="passport-title">
+        <div><h2 id="passport-title">내 축제 도장</h2><p id="stamp-count" aria-live="polite"></p></div>
+        <ul id="stamps"></ul>
+      </section>
     </section>
     <section id="workshop" hidden aria-labelledby="activity-title">
       <div class="activity-heading">
         <div><a class="back" href="#home">처음 화면</a><h1 id="activity-title" tabindex="-1"></h1></div>
         <p id="instruction"></p>
       </div>
+      <section class="mission" aria-labelledby="mission-title">
+        <span class="mission-icon" id="mission-icon" aria-hidden="true"></span>
+        <div class="mission-copy">
+          <h2 id="mission-title"></h2><p id="mission-text"></p>
+          <div id="trail" aria-label="모은 별" hidden></div>
+        </div>
+        <div class="mission-actions"><button id="mission-action" class="primary" hidden></button><button id="draw-card" hidden>다른 주문 뽑기</button></div>
+      </section>
       <div class="layout">
         <div class="bench">
           <div class="bench-head"><h2 id="board-title">쌓기판</h2><span id="count"></span></div>
@@ -43,9 +56,6 @@
           <div class="bench-foot"><span id="orientation"></span><button id="view-toggle" type="button">위에서 보기</button></div>
         </div>
         <aside class="tools">
-          <div id="question" hidden>
-            <span id="progress"></span><h2>설명 카드</h2><p id="prompt"></p>
-          </div>
           <h2 id="palette-title">블록 고르기</h2>
           <div id="palette" role="group" aria-labelledby="palette-title"></div>
           <div class="modes" id="modes" role="group" aria-label="쌓기 도구">
@@ -63,6 +73,13 @@
       <p id="reflect" class="reflect"></p>
     </section>
   </main>
+  <dialog id="reward" aria-labelledby="reward-title">
+    <div class="reward-body">
+      <div id="reward-art"></div>
+      <h2 id="reward-title"></h2><p id="reward-text"></p>
+      <div class="reward-actions"><button id="reward-home" class="primary">내 도장 보러 가기</button><button id="reward-stay">계속 놀기</button></div>
+    </div>
+  </dialog>
   <footer><span>초등 수학 · 도형과 측정</span><span>[2수03-02] 입체도형의 모양</span></footer>
 </body>
 </html>
