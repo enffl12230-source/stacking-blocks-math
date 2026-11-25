@@ -10,7 +10,7 @@ const questions = [
   {text:'맨 앞줄 왼쪽 끝에 한 개를 놓아요. 한 칸 뒤로, 한 칸 오른쪽으로 가서 두 개를 쌓아요. 거기서 다시 한 칸 뒤로, 한 칸 오른쪽으로 가서 세 개를 쌓아요.', hint:'위에서 보면 세 탑이 비스듬히 이어져요.', answer:[[12,1],[9,2],[6,3]]}
 ];
 const lessons = {
-  practice:{title:'토끼의 당근 계단', instruction:'격자를 눌러 계단을 만들어요. 한 칸에 세 층까지 쌓을 수 있어요.', reflect:'토끼가 있는 자리와 당근이 있는 자리를 친구에게 말해 보세요.'},
+  practice:{title:'토끼의 당근 계단', instruction:'격자를 톡 눌러 세 층까지 쌓아요. 판을 꾹 누른 채 끌면 빙글빙글 돌아가요.', reflect:'토끼가 있는 자리와 당근이 있는 자리를 친구에게 말해 보세요.'},
   quiz:{title:'별빛 보물찾기', instruction:'단서대로 쌓고 정답을 확인해요. 별 다섯 개가 모이면 보물상자가 열려요.', reflect:'어려우면 ‘힌트’를 눌러요. 블록 색은 마음대로 골라도 좋아요.'},
   art:{title:'축제 장난감 가게', instruction:'블록을 작업판으로 끌어오세요. 가까이 가져가면 위나 옆에 붙어요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
 };
@@ -101,12 +101,11 @@ function drawGrid() {
   }
   for (const tower of towers.sort((a,b) => a.depth-b.depth)) picture.append(tower.group);
   picture.append(boardLabel(overhead ? 280 : 164,overhead ? 338 : 304,'내 앞'),boardLabel(overhead ? 460 : 400,overhead ? 178 : 304,'오른쪽'));
-  if (active === 'practice') markStairs(picture,overhead);
   artBoard.replaceChildren(picture);
 }
 artBoard.addEventListener('click', event => {
   const cell = event.target.closest('[data-cell]');
-  if (cell && active !== 'art') changeStack(Number(cell.dataset.cell));
+  if (cell && (active === 'quiz' || (active === 'practice' && event.detail === 0))) changeStack(Number(cell.dataset.cell));
 });
 artBoard.addEventListener('keydown', event => {
   const cell = event.target.closest('[data-cell]');
@@ -117,13 +116,16 @@ artBoard.addEventListener('keydown', event => {
 function updateBoard() {
   const s = currentState(), art = active === 'art';
   const count = art ? artBlocks.length : s.stacks.reduce((sum,stack) => sum+stack.length,0);
-  if (art) drawArt(); else drawGrid();
+  if (art) drawArt();
+  else if (active === 'practice') drawPractice();
+  else drawGrid();
   $('#count').textContent = '블록 '+count+'개';
   $('#undo').disabled = !s.history.length;
   $('#clear').disabled = count === 0;
   $('#view-toggle').textContent = s.overhead ? '입체로 보기' : '위에서 보기';
   $('#orientation').textContent = art ? '색을 고른 뒤 작업판을 눌러 놓을 수도 있어요.' :
     (s.overhead ? '숫자는 그 칸의 층수예요.' : '‘내 앞’이라고 쓴 쪽이 맨 앞줄이에요.');
+  if (active === 'practice') $('#orientation').textContent = '끌어서 돌리거나 네 방향 버튼을 눌러요.';
   for (const button of $('#modes').children) button.setAttribute('aria-pressed',button.dataset.mode === s.mode);
   renderMission();
 }
@@ -185,6 +187,7 @@ $('#undo').addEventListener('click',() => {
   reopenQuestion(); tell('한 번 되돌렸어요.'); updateBoard();
 });
 function route(moveFocus) {
+  endOrbit();
   if ($('#reward').open) $('#reward').close();
   cancelDrag();
   const name = location.hash.slice(1);
@@ -200,7 +203,10 @@ function route(moveFocus) {
     $('#board-title').textContent = art ? '내 작품' : '쌓기판';
     $('#quiz-actions').hidden = !quiz;
     $('#mission-icon').replaceChildren(festivalIcon(active));
-    $('#modes').hidden = art; $('#view-toggle').hidden = art;
+    $('#modes').hidden = art; $('#view-toggle').hidden = !quiz;
+    const practice = active === 'practice';
+    for (const id of ['#camera-controls','#camera-name','#camera-reset']) $(id).hidden = !practice;
+    artBoard.parentElement.classList.toggle('practice-stage',practice);
     artBoard.classList.toggle('art-board',art);
     if (art) {
       artBoard.setAttribute('tabindex','0');

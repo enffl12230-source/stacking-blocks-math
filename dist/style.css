@@ -126,6 +126,16 @@ button[aria-pressed="true"], .primary { background: var(--blue); border-color: v
 #trail svg { width:27px; height:27px; opacity:.28; filter:grayscale(1); }
 #trail .collected { filter:none; opacity:1; }
 .target-cell { fill:#ffdc624f; stroke:#956720; stroke-width:3; stroke-dasharray:6 3; pointer-events:none; }
+.practice-stage { position:relative; background:#eff4f8; padding:40px 0; }
+.practice-stage #board { cursor:grab; touch-action:none; -webkit-user-select:none; }
+.practice-stage #board.orbiting, .practice-stage #board.orbiting * { cursor:grabbing; }
+#camera-controls button { position:absolute; min-width:54px; padding:5px 9px; font-size:15px; line-height:1.15; border-radius:13px; box-shadow:0 2px 4px #4d557116; }
+#camera-controls [data-camera="top"] { left:50%; top:3px; transform:translateX(-50%); }
+#camera-controls [data-camera="bottom"] { left:50%; bottom:3px; transform:translateX(-50%); }
+#camera-controls [data-camera="left"] { left:4px; top:50%; transform:translateY(-50%); }
+#camera-controls [data-camera="right"] { right:4px; top:50%; transform:translateY(-50%); }
+#camera-name { font-size:.9rem; color:#394e67; font-weight:750; }
+.practice-stage #board g[role="button"]:focus-visible polygon { stroke:#275ab4; stroke-width:2.75; }
 #board .target-number { fill:#694618; pointer-events:none; }
 dialog { width:min(420px,92vw); max-height:88vh; overflow:auto; text-align:center; color:var(--ink); border:2px solid #d5bd86; border-radius:24px; padding:0; box-shadow:0 22px 72px #241b4544; }
 dialog::backdrop { background:#20233c9e; }

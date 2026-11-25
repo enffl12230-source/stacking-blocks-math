@@ -18,7 +18,6 @@ const orders = [
 let orderIndex = -1;
 let orderDeck = [];
 let practiceDelivered = false, chestOpened = false;
-let previousRabbit = null;
 
 const glyphs = {
   practice: '<g stroke="#553e4f" stroke-width="2.4" stroke-linejoin="round"><path d="M20 34C12 17 13 5 18 5s10 14 11 25" fill="#fff6de"/><path d="M31 28C30 12 36 3 40 6s2 19-2 27" fill="#fff6de"/><path d="M14 50c-4-18 2-26 16-26s23 13 18 25c-5 12-32 11-34 1Z" fill="#fff6de"/></g><g fill="#493644"><circle cx="24" cy="39" r="2.2"/><circle cx="37" cy="39" r="2.2"/><path d="m28 43 5 0-2.5 3Z"/></g><g fill="#f9ab97"><ellipse cx="20" cy="44" rx="3.6" ry="2"/><ellipse cx="41" cy="44" rx="3.6" ry="2"/></g>',
@@ -64,39 +63,6 @@ function renderPassport() {
 function stairStep() {
   const first = stairs.findIndex(s => state.practice.stacks[s.index].length !== s.height);
   return first < 0 ? stairs.length : first;
-}
-function markStairs(parent,overhead) {
-  const step = stairStep();
-  for (const [i,s] of stairs.entries()) {
-    const col = s.index%4;
-    const x = overhead ? 176+col*69 : 280+(col-3)*47;
-    const base = overhead ? 32+3*69 : 177+(col+3)*22;
-    const y = overhead ? base+12 : base-state.practice.stacks[s.index].length*43;
-    if (i === step) {
-      parent.append(svgNode(overhead?'rect':'polygon',overhead ?
-        {x:x-31,y:base+2,width:60,height:60,rx:5,class:'target-cell'} :
-        {points:[[x,y-21],[x+44,y],[x,y+21],[x-44,y]],class:'target-cell'}));
-    }
-    // The overhead view already displays each height inside the cell.
-    if (i === step && !overhead) {
-      const goal = boardLabel(x,y+5,s.height+'층');
-      goal.classList.add('target-number');parent.append(goal);
-    }
-  }
-  const hop = Math.max(0,step-1), col = stairs[hop].index%4;
-  const x = overhead ? 176+col*69 : 280+(col-3)*47;
-  const y = overhead ? 240 : 177+(col+3)*22-state.practice.stacks[stairs[hop].index].length*43;
-  const rabbitX = step ? x-20 : (overhead ? 78 : 74);
-  const rabbitY = step ? (overhead ? y : y-42) : (overhead ? 245 : 207);
-  const rabbit = svgNode('g',{'pointer-events':'none'});
-  rabbit.append(mascot('practice',rabbitX,rabbitY,step ? 42 : 47));
-  parent.append(rabbit);
-  if (previousRabbit && previousRabbit.overhead === overhead && previousRabbit.step < step && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const dx = previousRabbit.x-rabbitX, dy = previousRabbit.y-rabbitY;
-    rabbit.animate([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'translate('+dx/2+'px,'+(dy/2-18)+'px)'},{transform:'translate(0,0)'}],{duration:400,easing:'ease-out'});
-  }
-  previousRabbit = {x:rabbitX,y:rabbitY,overhead,step};
-  if (!practiceDelivered) parent.append(mascot('carrot',overhead?341:258,overhead?249:138,39));
 }
 function drawOrder() {
   if (!orderDeck.length) {

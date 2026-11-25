@@ -10,6 +10,7 @@
   <script src="drawing.js" defer></script>
   <script src="art.js" defer></script>
   <script src="festival.js" defer></script>
+  <script src="practice-3d.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -52,8 +53,14 @@
       <div class="layout">
         <div class="bench">
           <div class="bench-head"><h2 id="board-title">쌓기판</h2><span id="count"></span></div>
-          <svg id="board" viewBox="0 0 560 380" role="group" aria-labelledby="board-title"></svg>
-          <div class="bench-foot"><span id="orientation"></span><button id="view-toggle" type="button">위에서 보기</button></div>
+          <div class="board-stage">
+            <svg id="board" viewBox="0 0 560 380" role="group" aria-labelledby="board-title"></svg>
+            <div id="camera-controls" role="group" aria-label="쌓기나무를 바라볼 위치" hidden>
+              <button type="button" data-camera="top">위</button><button type="button" data-camera="left">왼쪽</button>
+              <button type="button" data-camera="right">오른쪽</button><button type="button" data-camera="bottom">아래</button>
+            </div>
+          </div>
+          <div class="bench-foot"><span id="orientation"></span><span id="camera-name" hidden></span><button id="camera-reset" type="button" hidden>기본 시점</button><button id="view-toggle" type="button">위에서 보기</button></div>
         </div>
         <aside class="tools">
           <h2 id="palette-title">블록 고르기</h2>
