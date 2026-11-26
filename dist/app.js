@@ -11,11 +11,11 @@ const questions = [
 ];
 const lessons = {
   practice:{title:'토끼의 당근 계단', instruction:'격자를 톡 눌러 세 층까지 쌓아요. 판을 꾹 누른 채 끌면 빙글빙글 돌아가요.', reflect:'토끼가 있는 자리와 당근이 있는 자리를 친구에게 말해 보세요.'},
-  quiz:{title:'별빛 보물찾기', instruction:'단서대로 쌓고 정답을 확인해요. 별 다섯 개가 모이면 보물상자가 열려요.', reflect:'어려우면 ‘힌트’를 눌러요. 블록 색은 마음대로 골라도 좋아요.'},
-  art:{title:'축제 장난감 가게', instruction:'블록을 작업판으로 끌어오세요. 가까이 가져가면 위나 옆에 붙어요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
+  quiz:{title:'별빛 보물찾기', instruction:'단서대로 쌓고 판을 돌려 살펴봐요. 단서를 처음 맞히면 미술 도구를 살 별빛 크레딧을 받아요.', reflect:'어려우면 ‘힌트’를 눌러요. 블록 색은 마음대로 골라도 좋아요.'},
+  art:{title:'축제 장난감 가게', instruction:'블록을 끌어와 붙여요. ‘작품 돌리기’로 모든 면을 살펴보고 미술 도구로 꾸며요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
 };
 const state = Object.fromEntries(Object.keys(lessons).map(key => [key,{
-  color:'wood', mode:'add', overhead:false, stacks:emptyBoard(), history:[], message:''
+  color:'wood', mode:'add', stacks:emptyBoard(), history:[], message:''
 }]));
 let active = 'home', questionIndex = 0, solved = false;
 function currentState() { return state[active]; }
@@ -75,37 +75,9 @@ function boardLabel(x,y,value) {
   const text = svgNode('text',{x,y,'text-anchor':'middle','font-size':16});
   text.textContent = value; return text;
 }
-function drawGrid() {
-  const {stacks,overhead} = currentState();
-  const picture = document.createDocumentFragment();
-  const towers = [];
-  for (const [index,stack] of stacks.entries()) {
-    const r = Math.floor(index/size), c = index%size;
-    if (overhead) {
-      const x = 143+c*69, y = 32+r*69;
-      const group = cellGroup(index,true);
-      group.append(svgNode('rect',{x,y,width:66,height:66,rx:4,stroke:'#a7bbca',fill:stack.length ? paints[stack[stack.length-1]].top : '#fff'}));
-      if (stack.length) group.append(boardLabel(x+33,y+39,stack.length+'층'));
-      picture.append(group);
-    } else {
-      const x = 280+(c-r)*47, y = 177+(c+r)*22;
-      const tile = cellGroup(index,!stack.length);
-      tile.append(svgNode('polygon',{points:[[x,y-22],[x+47,y],[x,y+22],[x-47,y]],fill:(c+r)%2 ? '#f9fcff' : '#e5eef5',stroke:'#9aafc0','stroke-width':1.5}));
-      picture.append(tile);
-      if (stack.length) {
-        const group = cellGroup(index,true);
-        stack.forEach((color,z) => group.append(cube(x,y-(z+.5)*43,color,47,22,43)));
-        towers.push({depth:r+c,group});
-      }
-    }
-  }
-  for (const tower of towers.sort((a,b) => a.depth-b.depth)) picture.append(tower.group);
-  picture.append(boardLabel(overhead ? 280 : 164,overhead ? 338 : 304,'내 앞'),boardLabel(overhead ? 460 : 400,overhead ? 178 : 304,'오른쪽'));
-  artBoard.replaceChildren(picture);
-}
 artBoard.addEventListener('click', event => {
   const cell = event.target.closest('[data-cell]');
-  if (cell && (active === 'quiz' || (active === 'practice' && event.detail === 0))) changeStack(Number(cell.dataset.cell));
+  if (cell && active !== 'art' && event.detail === 0) changeStack(Number(cell.dataset.cell));
 });
 artBoard.addEventListener('keydown', event => {
   const cell = event.target.closest('[data-cell]');
@@ -117,16 +89,14 @@ function updateBoard() {
   const s = currentState(), art = active === 'art';
   $('#reflect').textContent = lessons[active].reflect;
   const count = art ? artBlocks.length : s.stacks.reduce((sum,stack) => sum+stack.length,0);
-  if (art) drawArt();
-  else if (active === 'practice') drawPractice();
-  else drawGrid();
+  if (art && !artSpinning) drawArt();
+  else drawBlockBoard();
   $('#count').textContent = '블록 '+count+'개';
   $('#undo').disabled = !s.history.length;
   $('#clear').disabled = count === 0;
-  $('#view-toggle').textContent = s.overhead ? '입체로 보기' : '위에서 보기';
-  $('#orientation').textContent = art ? '색을 고른 뒤 작업판을 눌러 놓을 수도 있어요.' :
-    (s.overhead ? '숫자는 그 칸의 층수예요.' : '‘내 앞’이라고 쓴 쪽이 맨 앞줄이에요.');
-  if (active === 'practice') $('#orientation').textContent = '끌어서 돌리거나 네 방향 버튼을 눌러요.';
+  $('#orientation').textContent = art ? (artSpinning ? '작품을 끌어 돌려요. 다 보았으면 ‘다시 꾸미기’를 눌러요.' : toolInstruction()) :
+    (active==='quiz' ? '끌어서 돌려요. 단서의 앞과 오른쪽은 판에 적힌 방향이에요.' : '끌어서 돌리거나 네 방향 버튼을 눌러요.');
+  updateViewControls();
   for (const button of $('#modes').children) button.setAttribute('aria-pressed',button.dataset.mode === s.mode);
   renderMission();
 }
@@ -148,7 +118,9 @@ $('#check').addEventListener('click',() => {
   const mismatched = state.quiz.stacks.findIndex((stack,i) => stack.length !== target[i]);
   solved = mismatched < 0;
   if (solved) {
-    tell(questionIndex === questions.length-1 ? '별 다섯 개를 모았어요! 보물상자를 열어 보세요.' : '별 조각을 찾았어요! 다음 단서로 가 볼까요?');
+    const earned = claimClue(questionIndex);
+    const prize = earned ? '별빛 크레딧 1개를 받았어요! ' : '이미 별빛 크레딧을 받은 단서예요. ';
+    tell(prize+(questionIndex === questions.length-1 ? '별 다섯 개를 모았어요! 보물상자를 열어 보세요.' : '다음 단서로 가 볼까요?'));
   } else {
     const tooTall = state.quiz.stacks[mismatched].length > target[mismatched];
     tell(positionName(mismatched)+'에서 블록을 '+(tooTall ? '조금 빼 보세요.' : '조금 더 쌓아 보세요.'));
@@ -173,7 +145,7 @@ $('#modes').addEventListener('click',event => {
   tell(currentState().mode === 'add' ? '칸을 누르면 한 개씩 쌓여요.' : '칸을 누르면 맨 위 블록이 빠져요.');
   updateBoard();
 });
-$('#view-toggle').addEventListener('click',() => { currentState().overhead = !currentState().overhead; updateBoard(); });
+$('#view-toggle').addEventListener('click',() => setBoardCamera(camera.preset==='top' ? 'home' : 'top'));
 $('#clear').addEventListener('click',() => {
   saveUndo();
   if (active === 'art') artBlocks.length = 0;
@@ -193,12 +165,25 @@ function route(moveFocus) {
   if ($('#talk').open) $('#talk').close();
   if ($('#reward').open) $('#reward').close();
   cancelDrag();
+  artSpinning=false;
   const name = location.hash.slice(1);
-  active = Object.hasOwn(lessons,name) ? name : 'home';
+  const concepts = name==='concepts';
+  if (concepts && Object.hasOwn(lessons,active)) {
+    $('#concept-return').href='#'+active;
+    $('#concept-return').textContent=lessons[active].title+' 이어 하기';
+  } else if (concepts && active==='home') {
+    $('#concept-return').href='#practice';
+    $('#concept-return').textContent='연습판에서 쌓아 보기';
+  }
+  active = concepts || Object.hasOwn(lessons,name) ? name : 'home';
   const home = active === 'home';
-  $('#home').hidden = !home; $('#workshop').hidden = home;
-  document.title = home ? '쌓기나무 놀이터' : lessons[active].title+' · 쌓기나무 놀이터';
-  if (!home) {
+  $('#home').hidden = !home; $('#workshop').hidden = home || concepts; $('#concepts').hidden=!concepts;
+  $('#play-tab').setAttribute('aria-current',concepts ? 'false' : 'page');
+  $('#concept-tab').setAttribute('aria-current',concepts ? 'page' : 'false');
+  document.title = home ? '쌓기나무 놀이터' : (concepts ? '쌓기나무 개념' : lessons[active].title)+' · 쌓기나무 놀이터';
+  if (concepts) renderConcept();
+  if (!home && !concepts) {
+    camera = boardCameras[active];
     const art = active === 'art', quiz = active === 'quiz';
     $('#activity-title').textContent = lessons[active].title;
     $('#instruction').textContent = lessons[active].instruction;
@@ -207,13 +192,14 @@ function route(moveFocus) {
     $('#quiz-actions').hidden = !quiz;
     $('#mission-icon').replaceChildren(festivalIcon(active));
     $('#modes').hidden = art; $('#view-toggle').hidden = !quiz;
-    const practice = active === 'practice';
-    for (const id of ['#camera-controls','#camera-name','#camera-reset']) $(id).hidden = !practice;
-    artBoard.parentElement.classList.toggle('practice-stage',practice);
+    $('#art-shop').hidden = !art;
+    $('#art-spin').hidden = !art;
+    $('#quiz-wallet').hidden = !quiz;
+    refreshShop();
     artBoard.classList.toggle('art-board',art);
     if (art) {
       artBoard.setAttribute('tabindex','0');
-      artBoard.setAttribute('aria-label','작업판. 방향키로 위치를 고르고 엔터로 블록을 놓아요.');
+      artBoard.setAttribute('aria-label','작업판. 방향키로 위치를 고르고 엔터로 도구를 써요.');
     } else { artBoard.removeAttribute('tabindex'); artBoard.removeAttribute('aria-label'); }
     for (const el of $('#palette').children) el.classList.toggle('art-tool',art);
     chooseColor(currentState().color);
@@ -222,7 +208,7 @@ function route(moveFocus) {
     updateBoard();
   }
   if (moveFocus) {
-    $(home ? '#home-title' : '#activity-title').focus({preventScroll:true});
+    $(home ? '#home-title' : concepts ? '#concept-title' : '#activity-title').focus({preventScroll:true});
     window.scrollTo(0,0);
   }
 }

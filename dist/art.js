@@ -49,6 +49,10 @@ function drawArt(ghost = null) {
   const fragment = document.createDocumentFragment();
   for (const b of pieces) {
     const block = cube(b.x,b.y,b.color,artWidth,artDepth,artHeight);
+    if (b.stamp) {
+      const points=starOutline.map(([u,v])=>[b.x+u*14,b.y-artHeight/2+v*9]);
+      block.append(svgNode('polygon',{points,fill:'#fff2a4',stroke:'#875538','stroke-width':1.4,'pointer-events':'none'}));
+    }
     if (b.ghost) {
       block.setAttribute('opacity','.58');
       block.setAttribute('pointer-events','none');
@@ -69,10 +73,11 @@ function cancelDrag() {
   const {capture, pointer} = drag;
   drag = null;
   if (capture.hasPointerCapture(pointer)) capture.releasePointerCapture(pointer);
-  if (active === 'art') drawArt();
+  if (active === 'art' && !artSpinning) drawArt();
 }
 function beginDrag(event, sourceColor) {
-  if (active !== 'art' || !event.isPrimary || event.button !== 0) return;
+  if (active !== 'art' || artSpinning || !event.isPrimary || event.button !== 0) return;
+  if (artTool!=='build' && sourceColor) { chooseColor(sourceColor); return; }
   cancelDrag();
   event.preventDefault();
   const p = localPoint(event);
@@ -92,14 +97,14 @@ function moveDrag(event) {
   if (!drag || event.pointerId !== drag.pointer) return;
   const p = localPoint(event);
   if (Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>4) drag.moved = true;
-  if (drag.moved) drawArt(withinBoard(p) ? dropLocation(intendedPoint(p),drag.id) : null);
+  if (artTool==='build' && drag.moved) drawArt(withinBoard(p) ? dropLocation(intendedPoint(p),drag.id) : null);
 }
-function placeArt(p, color, movingId) {
+function placeArt(p, color, movingId, stamp=false) {
   const target = dropLocation(p,movingId);
   if (!target) { tell('빈 곳이나 다른 블록의 가장자리에 놓아 보세요.'); return; }
   saveUndo();
   const existing = artBlocks.find(b => b.id === movingId);
-  const piece = existing || {id:nextArtId++, color};
+  const piece = existing || {id:nextArtId++, color, stamp};
   Object.assign(piece,{x:target.x,y:target.y,level:target.level});
   if (!existing) artBlocks.push(piece);
   tell(target.snapped ? '가까운 블록에 붙었어요.' : '작업판에 블록을 놓았어요.');
@@ -107,7 +112,9 @@ function placeArt(p, color, movingId) {
 function finishDrag(event) {
   if (!drag || event.pointerId !== drag.pointer) return;
   const p = localPoint(event);
-  if (withinBoard(p)) {
+  if (withinBoard(p) && artTool!=='build') {
+    if (!drag.moved) applyArtTool(p,drag.id);
+  } else if (withinBoard(p)) {
     const moving = drag.moved && drag.id;
     const location = moving ? intendedPoint(p) : p;
     placeArt(location,moving ? drag.color : currentState().color,moving || undefined);
@@ -121,14 +128,25 @@ window.addEventListener('pointerup',finishDrag);
 window.addEventListener('pointercancel',event => { if (drag?.pointer === event.pointerId) cancelDrag(); });
 window.addEventListener('blur',cancelDrag);
 artBoard.addEventListener('keydown', event => {
-  if (active !== 'art') return;
+  if (active !== 'art' || artSpinning) return;
   const movements = { ArrowUp:[0,-20], ArrowDown:[0,20], ArrowLeft:[-20,0], ArrowRight:[20,0] };
   if (movements[event.key]) {
     event.preventDefault();
     const [dx,dy] = movements[event.key];
     keyboardPoint = {x:Math.max(35,Math.min(525,keyboardPoint.x+dx)),y:Math.max(39,Math.min(341,keyboardPoint.y+dy))};
-    drawArt(dropLocation(keyboardPoint));
+    if (artTool==='build') drawArt(dropLocation(keyboardPoint));
+    else {
+      drawArt();
+      artBoard.append(svgNode('circle',{cx:keyboardPoint.x,cy:keyboardPoint.y,r:7,fill:'none',stroke:'#25476f','stroke-width':3,'pointer-events':'none'}));
+    }
   } else if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault(); placeArt(keyboardPoint,currentState().color); updateBoard();
+    event.preventDefault();
+    if (artTool==='build') placeArt(keyboardPoint,currentState().color);
+    else {
+      const screen=new DOMPoint(keyboardPoint.x,keyboardPoint.y).matrixTransform(artBoard.getScreenCTM());
+      const hit=document.elementFromPoint(screen.x,screen.y)?.closest('[data-art-id]');
+      applyArtTool(keyboardPoint,Number(hit?.dataset.artId));
+    }
+    updateBoard();
   }
 });

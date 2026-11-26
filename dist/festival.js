@@ -156,7 +156,10 @@ document.querySelector('#mission-action').addEventListener('click',()=>{
     }
   }
   if (active==='art' && orderIndex>=0) {
-    if (orderFits()) openShapeTalk('art', () => { drawArt();showReward('art'); });
+    if (orderFits()) openShapeTalk('art', () => {
+      drawArt();showReward('art');
+      if (artSpinning) drawBlockBoard();
+    });
     else {
       const reminder = '조금 더 만들어 볼까요? '+orders[orderIndex].request;
       document.querySelector('#mission-text').textContent = reminder;

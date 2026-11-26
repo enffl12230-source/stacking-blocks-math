@@ -8,7 +8,9 @@ const cameraPresets = {
   left: {yaw:-Math.PI/2, pitch:0, label:'왼쪽에서 본 모양'},
   right: {yaw:Math.PI/2, pitch:0, label:'오른쪽에서 본 모양'}
 };
-const camera = {...cameraPresets.home, preset:'home'};
+const boardCameras = Object.fromEntries(['practice','quiz','art'].map(key=>[key,{...cameraPresets.home,preset:'home'}]));
+let camera = boardCameras.practice;
+let artSpinning = false;
 const cubeFaces = [
   {name:'top',normal:[0,1,0],corners:[4,5,7,6],paint:'top'},
   {name:'bottom',normal:[0,-1,0],corners:[0,2,3,1],paint:'edge'},
@@ -19,14 +21,14 @@ const cubeFaces = [
 ];
 let orbit = null;
 let lastStepView = null;
-function practiceProjection() {
-  const sy=Math.sin(camera.yaw), cy=Math.cos(camera.yaw);
-  const sp=Math.sin(camera.pitch), cp=Math.cos(camera.pitch);
-  const eye=[sy*cp, sp, cy*cp];
+function sceneProjection({yaw,pitch},center,scale,screenX,screenY) {
+  const sy=Math.sin(yaw), cy=Math.cos(yaw), sp=Math.sin(pitch), cp=Math.cos(pitch);
+  const eye=[sy*cp,sp,cy*cp];
   return {
     eye,
     point(x,y,z) {
-      return [280+54*(cy*x-sy*z),190+54*(sp*(sy*x+cy*z)-cp*(y-1.35))];
+      x-=center[0]; y-=center[1]; z-=center[2];
+      return [screenX+scale*(cy*x-sy*z),screenY+scale*(sp*(sy*x+cy*z)-cp*y)];
     },
     depth(x,y,z) { return x*eye[0]+y*eye[1]+z*eye[2]; }
   };
@@ -38,18 +40,20 @@ function floorCorners(x,z) {
   return [[x,0,z],[x+1,0,z],[x+1,0,z+1],[x,0,z+1]];
 }
 function occupied(x,y,z) {
-  return x>=0 && x<size && z>=0 && z<size && y>=0 && y<state.practice.stacks[z*size+x].length;
+  return x>=0 && x<size && z>=0 && z<size && y>=0 && y<currentState().stacks[z*size+x].length;
 }
-function raisedBlock(index,level,color,view,keyboard) {
-  const c=index%size, r=Math.floor(index/size), x=c-size/2, z=r-size/2;
+function projectBlock(x,level,z,color,view,group,hidden,stamp=false) {
   const vertices=Array.from({length:8},(_,i)=>view.point(x+(i&1),level+((i>>2)&1),z+((i>>1)&1)));
-  const group=cellGroup(index,keyboard);
   for (const face of cubeFaces) {
     const [nx,ny,nz]=face.normal;
     const facing=nx*view.eye[0]+ny*view.eye[1]+nz*view.eye[2];
-    if (facing<.00001 || occupied(c+nx,level+ny,r+nz)) continue;
+    if (facing<.00001 || (hidden && hidden(nx,ny,nz))) continue;
     const points=face.corners.map(i=>vertices[i]);
     group.append(surface(points,{fill:paints[color][face.paint],stroke:paints[color].edge,'stroke-width':1.5,'data-face':face.name}));
+    if (stamp && face.name==='top') {
+      const points=starOutline.map(([u,v])=>view.point(x+.5+u*.31,level+1,z+.5+v*.31));
+      group.append(surface(points,{fill:'#fff2a4',stroke:'#875538','stroke-width':1.5,'pointer-events':'none'}));
+    }
     if (color==='wood' && Math.abs(ny)!==1 && facing>.25) {
       const [a,b,d]=[points[0],points[1],points[3]];
       const at=(u,v)=>[a[0]+(b[0]-a[0])*u+(d[0]-a[0])*v,a[1]+(b[1]-a[1])*u+(d[1]-a[1])*v];
@@ -58,10 +62,12 @@ function raisedBlock(index,level,color,view,keyboard) {
   }
   return group;
 }
-function drawPractice() {
-  const view=practiceProjection();
+function drawBlockBoard() {
+  if (active==='art') { drawArtOrbit(); return; }
+  const view=sceneProjection(camera,[0,1.35,0],54,280,190);
   const fragment=document.createDocumentFragment(), blocks=[];
-  const step=stairStep(), task=stairs[step];
+  const practice=active==='practice';
+  const step=practice ? stairStep() : 0, task=stairs[step];
   const above=view.eye[1]>.04;
   const project=points=>points.map(p=>view.point(...p));
   const boardCorners=[[-2,0,-2],[2,0,-2],[2,0,2],[-2,0,2]];
@@ -69,19 +75,20 @@ function drawPractice() {
     const shadow=boardCorners.map(([x,,z])=>view.point(x+.07,-.16,z+.07));
     fragment.append(surface(shadow,{fill:'#bcc7cc','pointer-events':'none'}));
   }
-  for (const [index,stack] of state.practice.stacks.entries()) {
+  for (const [index,stack] of currentState().stacks.entries()) {
     const x=index%size-2,z=Math.floor(index/size)-2;
     const tile=cellGroup(index,!stack.length);
     tile.append(surface(project(floorCorners(x,z)),{fill:above ? ((x+z)%2 ? '#faf9ee' : '#e4eadf') : 'none',
       stroke:above?'#a3b4a8':'#cbd6df','stroke-width':above?1.4:.75,'pointer-events':'all'}));
     fragment.append(tile);
     for (const [level,color] of stack.entries()) {
-      blocks.push({depth:view.depth(x+.5,level+.5,z+.5),group:raisedBlock(index,level,color,view,level===stack.length-1)});
+      blocks.push({depth:view.depth(x+.5,level+.5,z+.5),group:projectBlock(x,level,z,color,view,cellGroup(index,level===stack.length-1),
+        (dx,dy,dz)=>occupied(index%size+dx,level+dy,Math.floor(index/size)+dz))});
     }
   }
   for (const block of blocks.sort((a,b)=>a.depth-b.depth)) fragment.append(block.group);
   // Game guides are billboards. Hide them in face views to expose the actual silhouette.
-  if (above && camera.preset!=='top') {
+  if (practice && above && camera.preset!=='top') {
     if (task) {
       const x=task.index%size-2,z=Math.floor(task.index/size)-2,height=state.practice.stacks[task.index].length;
       const rim=floorCorners(x,z).map(([u,,v])=>view.point(u,height,v));
@@ -103,6 +110,13 @@ function drawPractice() {
       fragment.append(mascot('carrot',px-12,py-22,27));
     }
   }
+  if (!practice && camera.preset==='top') {
+    currentState().stacks.forEach((stack,index)=>{
+      if (!stack.length) return;
+      const [x,y]=view.point(index%size-1.5,stack.length,Math.floor(index/size)-1.5);
+      fragment.append(boardLabel(x,y+5,stack.length+'층'));
+    });
+  }
   if (Math.abs(view.eye[1])>.12) {
     for (const [x,z,name] of [[0,2.48,'내 앞'],[2.58,0,'오른쪽']]) {
       const [px,py]=view.point(x,0,z);
@@ -110,16 +124,52 @@ function drawPractice() {
     }
   }
   artBoard.replaceChildren(fragment);
+  updateViewControls();
+}
+function updateViewControls() {
+  const orbiting=active!=='art' || artSpinning;
+  for (const id of ['#camera-controls','#camera-name','#camera-reset']) document.querySelector(id).hidden=!orbiting;
+  artBoard.parentElement.classList.toggle('practice-stage',orbiting);
+  document.querySelector('#art-spin').textContent=artSpinning ? '다시 꾸미기' : '작품 돌리기';
+  document.querySelector('#art-spin').setAttribute('aria-pressed',String(artSpinning));
+  document.querySelector('#view-toggle').textContent=camera.preset==='top' ? '입체로 보기' : '위에서 보기';
   document.querySelector('#camera-name').textContent=camera.label;
   for (const button of document.querySelectorAll('[data-camera]')) button.setAttribute('aria-pressed',String(button.dataset.camera===camera.preset));
 }
-function setPracticeCamera(preset) {
+function drawArtOrbit() {
+  const model=artBlocks.map(block=>({...artPosition(block),stamp:block.stamp}));
+  if (!model.length) {
+    artBoard.replaceChildren(boardLabel(280,190,'블록을 놓으면 여기서 돌려 볼 수 있어요.'));
+    updateViewControls();
+    return;
+  }
+  const coords=model.map(b=>[b.col+.5,b.level+.5,b.row+.5]);
+  const min=[Infinity,Infinity,Infinity], max=[-Infinity,-Infinity,-Infinity];
+  for (const center of coords) center.forEach((n,i)=>{min[i]=Math.min(min[i],n);max[i]=Math.max(max[i],n);});
+  const mid=min.map((n,i)=>(n+max[i])/2);
+  const radius=Math.hypot(...max.map((n,i)=>n-mid[i]+.5));
+  const scale=Math.min(66,170/radius);
+  const view=sceneProjection(camera,mid,scale,280,190);
+  const depth=b=>view.depth(b.col,b.level,b.row);
+  model.sort((a,b)=>depth(a)-depth(b));
+  artBoard.replaceChildren(...model.map(b=>projectBlock(b.col,b.level,b.row,b.color,view,svgNode('g'),null,b.stamp)));
+  updateViewControls();
+}
+function setArtSpinning(value) {
+  endOrbit();cancelDrag();
+  artSpinning=value;
+  if (value) Object.assign(camera,cameraPresets.home,{preset:'home'});
+  artBoard.setAttribute('aria-label',value ? '작품 회전판. 방향 버튼으로 보는 위치를 고를 수 있어요.' : '작업판. 방향키로 위치를 고르고 엔터로 도구를 써요.');
+  updateBoard();
+}
+document.querySelector('#art-spin').addEventListener('click',()=>setArtSpinning(!artSpinning));
+function setBoardCamera(preset) {
   endOrbit();
   Object.assign(camera,cameraPresets[preset],{preset});
-  drawPractice();
+  drawBlockBoard();
 }
-document.querySelectorAll('[data-camera]').forEach(button=>button.addEventListener('click',()=>setPracticeCamera(button.dataset.camera)));
-document.querySelector('#camera-reset').addEventListener('click',()=>setPracticeCamera('home'));
+document.querySelectorAll('[data-camera]').forEach(button=>button.addEventListener('click',()=>setBoardCamera(button.dataset.camera)));
+document.querySelector('#camera-reset').addEventListener('click',()=>setBoardCamera('home'));
 function endOrbit() {
   if (!orbit) return;
   const id=orbit.id;
@@ -128,7 +178,7 @@ function endOrbit() {
   if (artBoard.hasPointerCapture(id)) artBoard.releasePointerCapture(id);
 }
 artBoard.addEventListener('pointerdown',event=>{
-  if (active!=='practice' || !event.isPrimary || event.button!==0) return;
+  if ((active!=='practice' && active!=='quiz' && !(active==='art' && artSpinning)) || !event.isPrimary || event.button!==0) return;
   endOrbit();
   const cell=event.target.closest('[data-cell]');
   orbit={id:event.pointerId,x:event.clientX,y:event.clientY,yaw:camera.yaw,pitch:camera.pitch,
@@ -142,10 +192,11 @@ function moveOrbit(event) {
   orbit.moved=true;
   const turn=2*Math.PI/Math.max(240,artBoard.clientWidth);
   camera.yaw=(orbit.yaw-dx*turn)%(2*Math.PI);
-  camera.pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,orbit.pitch+dy*turn));
+  const pitch=orbit.pitch+dy*turn;
+  camera.pitch=active==='practice' ? Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch)) : pitch%(2*Math.PI);
   camera.preset='free';camera.label='자유 회전';
   artBoard.classList.add('orbiting');
-  drawPractice();
+  drawBlockBoard();
 }
 artBoard.addEventListener('pointermove',moveOrbit);
 artBoard.addEventListener('pointerup',event=>{
@@ -153,7 +204,7 @@ artBoard.addEventListener('pointerup',event=>{
   moveOrbit(event);
   const tapped=orbit.moved ? null : orbit.index;
   endOrbit();
-  if (tapped!==null) changeStack(tapped);
+  if (active!=='art' && tapped!==null) changeStack(tapped);
 });
 for (const name of ['pointercancel','lostpointercapture']) artBoard.addEventListener(name,event=>{
   if (orbit?.id===event.pointerId) endOrbit();
