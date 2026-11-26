@@ -138,15 +138,20 @@ $('#check').addEventListener('click',() => {
     const tooTall = state.quiz.stacks[mismatched].length > target[mismatched];
     tell(positionName(mismatched)+'에서 블록을 '+(tooTall ? '조금 빼 보세요.' : '조금 더 쌓아 보세요.'));
   }
-  drawBlockBoard();showQuestion();
+  revealQuizCell();showQuestion();
   if (solved) $('#next').focus({preventScroll:true});
 });
+function revealQuizCell() {
+  // An empty floor cell is edge-on in a side view. Show the marked tile from above.
+  if (questHintCell!==null && questHintCell>=0 && Math.sin(camera.pitch)<.3) setBoardCamera('top');
+  else drawBlockBoard();
+}
 $('#hint').addEventListener('click', () => {
   if (active!=='quiz' || solved || !questStarted) return;
   const target=clueHeights();
   questHintCell=state.quiz.stacks.findIndex((stack,i)=>stack.length!==target[i]);
   tell(questHintCell<0 ? '단서와 꼭 맞아요. 별 찾기를 눌러요!' : questions[questionIndex].hint+' 테두리가 빛나는 칸을 살펴봐요.');
-  drawBlockBoard();
+  revealQuizCell();
 });
 $('#next').addEventListener('click', () => {
   if (!solved || active!=='quiz' || !questStarted) return;
@@ -169,7 +174,7 @@ $('#modes').addEventListener('click',event => {
 });
 $('#view-toggle').addEventListener('click',() => setBoardCamera(camera.preset==='top' ? 'home' : 'top'));
 $('#clear').addEventListener('click',() => {
-  if (active==='art') cancelDrag();
+  if (active==='art') { cancelDrag();copySource=null; }
   saveUndo();
   if (active === 'art') artBlocks.length = 0;
   else currentState().stacks = emptyBoard();
@@ -178,14 +183,14 @@ $('#clear').addEventListener('click',() => {
 $('#undo').addEventListener('click',() => {
   const s = currentState();
   if (!s.history.length) return;
-  if (active==='art') cancelDrag();
+  if (active==='art') { cancelDrag();copySource=null; }
   const previous = JSON.parse(s.history.pop());
   if (active === 'art') artBlocks.splice(0,artBlocks.length,...previous);
   else s.stacks = previous;
   reopenQuestion(); tell('한 번 되돌렸어요.'); updateBoard();
 });
 function route(moveFocus) {
-  endOrbit();
+  endConceptDrag();endOrbit();
   if ($('#talk').open) $('#talk').close();
   if ($('#reward').open) $('#reward').close();
   cancelDrag();

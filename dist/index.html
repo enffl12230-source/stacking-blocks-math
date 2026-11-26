@@ -49,11 +49,14 @@
       <h1 id="concept-title" tabindex="-1">쌓기나무 개념</h1>
       <div id="concept-topics" role="group" aria-label="살펴볼 개념">
         <button type="button" data-topic="cube" aria-pressed="true">쌓기나무 한 개</button>
-        <button type="button" data-topic="layers" aria-pressed="false">층과 개수</button>
+        <button type="button" data-topic="layers" aria-pressed="false">쌓고 세기</button>
         <button type="button" data-topic="position" aria-pressed="false">위치와 방향</button>
       </div>
       <div class="concept-card">
-        <div class="concept-figure"><svg id="concept-picture" viewBox="0 0 360 270" role="img" aria-label="쌓기나무 한 개"></svg></div>
+        <div class="concept-figure">
+          <svg id="concept-picture" viewBox="0 0 360 270" role="img" aria-label="쌓기나무 한 개"></svg>
+          <button type="button" id="concept-place" hidden>다른 자리에 놓기</button>
+        </div>
         <div class="concept-copy">
           <h2 id="concept-heading"></h2><p id="concept-explanation"></p>
           <div id="concept-controls" role="group" aria-label="그림 바꾸기"></div>

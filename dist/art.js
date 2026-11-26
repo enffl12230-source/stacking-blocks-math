@@ -200,9 +200,7 @@ artBoard.addEventListener('keydown', event => {
     event.preventDefault();
     if (artTool==='build') placeArt(keyboardPoint,currentState().color,null,false,artBlockAt(keyboardPoint));
     else {
-      const screen=new DOMPoint(keyboardPoint.x,keyboardPoint.y).matrixTransform(artBoard.getScreenCTM());
-      const hit=document.elementFromPoint(screen.x,screen.y)?.closest('[data-art-id]');
-      applyArtTool(keyboardPoint,Number(hit?.dataset.artId));
+      applyArtTool(keyboardPoint,artBlockAt(keyboardPoint)?.id);
     }
     updateBoard();
   }

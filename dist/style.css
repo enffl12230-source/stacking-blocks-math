@@ -175,6 +175,14 @@ dialog::backdrop { background:#20233c9e; }
 .concept-card { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:stretch; border:1px solid #c9d4d7; background:#fff; border-radius:22px; overflow:hidden; }
 .concept-figure { display:grid; place-items:center; background:#e8f0eb; }
 #concept-picture { width:100%; max-height:320px; }
+.concept-figure:has(#concept-place:not([hidden])) { align-content:center; padding-bottom:10px; }
+#concept-picture[data-topic="position"] { width:100%; height:clamp(220px,72vw,300px); touch-action:none; user-select:none; }
+#concept-picture [data-piece="red"], #concept-picture [data-slot] { touch-action:none; cursor:pointer; }
+#concept-picture [data-piece="red"] { cursor:grab; }
+#concept-picture.dragging { touch-action:none; }
+#concept-picture.dragging [data-piece="red"] { cursor:grabbing; }
+.slot-ring { fill:#e8f3eb; stroke:#52756b; stroke-width:1.8; stroke-dasharray:3 2; }
+[data-slot].aim .slot-ring { fill:#ffdf85; stroke:#77501d; stroke-width:3; }
 .concept-copy { padding:clamp(16px,3vw,32px); align-self:center; }
 .concept-copy h2 { margin:0 0 8px; font-size:1.45rem; }
 #concept-reading { background:#faf2d8; color:#574628; border-radius:12px; padding:12px; }
