@@ -132,9 +132,6 @@ button[aria-pressed="true"], .primary { background: var(--blue); border-color: v
 .mission-icon svg { display:block; width:54px; height:54px; }
 .mission-actions, .reward-actions { display:flex; gap:7px; flex-wrap:wrap; }
 .mission-actions:empty { display:none; }
-#trail { display:flex; align-items:center; gap:5px; margin-top:6px; }
-#trail svg { width:27px; height:27px; opacity:.28; filter:grayscale(1); }
-#trail .collected { filter:none; opacity:1; }
 .target-cell { fill:#ffdc624f; stroke:#956720; stroke-width:3; stroke-dasharray:6 3; pointer-events:none; }
 .practice-stage { position:relative; background:#eff4f8; padding:40px 0; }
 .practice-stage #board { cursor:grab; touch-action:none; -webkit-user-select:none; }

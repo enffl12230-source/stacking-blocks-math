@@ -11,7 +11,7 @@ const questions = [
 ];
 const lessons = {
   practice:{title:'토끼의 당근 계단', instruction:'격자를 톡 눌러 세 층까지 쌓아요. 판을 꾹 누른 채 끌면 빙글빙글 돌아가요.', reflect:'토끼가 있는 자리와 당근이 있는 자리를 친구에게 말해 보세요.'},
-  quiz:{title:'별빛 보물찾기', instruction:'단서대로 쌓고 판을 돌려 살펴봐요. 단서를 처음 맞히면 미술 도구를 살 별빛 크레딧을 받아요.', reflect:'어려우면 ‘힌트’를 눌러요. 블록 색은 마음대로 골라도 좋아요.'},
+  quiz:{title:'별빛 보물찾기', instruction:'단서대로 쌓고 판을 돌려 살펴봐요. 단서를 처음 맞히면 미술 도구를 살 별빛 크레딧을 받아요.', reflect:'별이 숨은 곳을 찾기 어려우면 ‘토끼 힌트’를 눌러요.'},
   art:{title:'축제 장난감 가게', instruction:'색을 고르고 빈 곳을 톡 눌러요. 블록을 톡 누르면 위로 쌓고, 꾹 누른 채 끌면 옮겨요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
 };
 const state = Object.fromEntries(Object.keys(lessons).map(key => [key,{
@@ -51,10 +51,12 @@ function positionName(index) {
     ['왼쪽 끝','왼쪽에서 두 번째 칸','오른쪽에서 두 번째 칸','오른쪽 끝'][index%size];
 }
 function changeStack(index, fromKeyboard = false) {
+  if (active==='quiz' && !questStarted) return;
   if (solved && active === 'quiz') { tell('맞았어요! 다음 활동 버튼을 눌러 보세요.'); return; }
   const s = currentState(), stack = s.stacks[index];
   if (s.mode === 'add' && stack.length === maxLayers) { tell('이 칸은 벌써 세 층이에요. 다른 칸에 쌓아 보세요.'); return; }
   if (s.mode === 'remove' && !stack.length) { tell('여기는 빈 칸이에요. 블록이 있는 칸을 눌러 보세요.'); return; }
+  if (active==='quiz') questHintCell=null;
   saveUndo();
   if (s.mode === 'add') stack.push(s.color);
   else stack.pop();
@@ -64,6 +66,7 @@ function changeStack(index, fromKeyboard = false) {
 }
 function cellGroup(index, keyboard) {
   const group = svgNode('g',{ 'data-cell':index });
+  if (active==='quiz' && index===questHintCell) group.classList.add('quest-hint-cell');
   if (keyboard) {
     group.setAttribute('role','button');
     group.setAttribute('tabindex','0');
@@ -97,7 +100,7 @@ function updateBoard() {
   $('#undo').disabled = !s.history.length;
   $('#clear').disabled = count === 0;
   $('#orientation').textContent = art ? (artSpinning ? '작품을 끌어 돌려요. 다 보았으면 ‘다시 꾸미기’를 눌러요.' : toolInstruction()) :
-    (active==='quiz' ? '끌어서 돌려요. 단서의 앞과 오른쪽은 판에 적힌 방향이에요.' : '끌어서 돌리거나 네 방향 버튼을 눌러요.');
+    (active==='quiz' ? '칸을 톡 누르면 쌓이고, 판을 끌면 돌아가요. ‘내 앞’이 맨 앞줄이에요.' : '끌어서 돌리거나 네 방향 버튼을 눌러요.');
   updateViewControls();
   for (const button of $('#modes').children) button.setAttribute('aria-pressed',button.dataset.mode === s.mode);
   renderMission();
@@ -107,39 +110,56 @@ function showQuestion() {
   $('#check').hidden = solved;
   $('#hint').hidden = solved;
   const final = questionIndex === questions.length-1;
-  $('#next').textContent = final ? (chestOpened ? '다시 도전하기' : '보물상자 열기') : '다음 단서';
+  $('#next').textContent = final ? (chestOpened ? '다시 탐험하기' : '별 담고 상자 열기') : '별 담고 다음 섬으로';
   renderMission();
 }
 function reopenQuestion() {
   if (active !== 'quiz') return;
-  solved = false; showQuestion();
+  solved = false; questHintCell=null; chestOpened=false;showQuestion();
+}
+function clueHeights() {
+  const target=Array(size*size).fill(0);
+  for (const [index,height] of questions[questionIndex].answer) target[index]=height;
+  return target;
 }
 $('#check').addEventListener('click',() => {
-  const target = Array(size*size).fill(0);
-  for (const [i,h] of questions[questionIndex].answer) target[i] = h;
+  if (active!=='quiz' || !questStarted || solved) return;
+  const target=clueHeights();
   const mismatched = state.quiz.stacks.findIndex((stack,i) => stack.length !== target[i]);
   solved = mismatched < 0;
   if (solved) {
     const earned = claimClue(questionIndex);
     const prize = earned ? '별빛 크레딧 1개를 받았어요! ' : '이미 별빛 크레딧을 받은 단서예요. ';
-    tell(prize+(questionIndex === questions.length-1 ? '별 다섯 개를 모았어요! 보물상자를 열어 보세요.' : '다음 단서로 가 볼까요?'));
+    questHintCell=null;
+    tell(prize+'별을 눌러 보물상자에 담아 주세요.');
+    questChime('found');
   } else {
+    questHintCell=mismatched;
     const tooTall = state.quiz.stacks[mismatched].length > target[mismatched];
     tell(positionName(mismatched)+'에서 블록을 '+(tooTall ? '조금 빼 보세요.' : '조금 더 쌓아 보세요.'));
   }
-  showQuestion();
+  drawBlockBoard();showQuestion();
+  if (solved) $('#next').focus({preventScroll:true});
 });
-$('#hint').addEventListener('click', () => tell(questions[questionIndex].hint));
+$('#hint').addEventListener('click', () => {
+  if (active!=='quiz' || solved || !questStarted) return;
+  const target=clueHeights();
+  questHintCell=state.quiz.stacks.findIndex((stack,i)=>stack.length!==target[i]);
+  tell(questHintCell<0 ? '단서와 꼭 맞아요. 별 찾기를 눌러요!' : questions[questionIndex].hint+' 테두리가 빛나는 칸을 살펴봐요.');
+  drawBlockBoard();
+});
 $('#next').addEventListener('click', () => {
-  if (!solved) return;
+  if (!solved || active!=='quiz' || !questStarted) return;
+  if (!chestOpened) flyQuestStar();
   if (questionIndex === questions.length-1 && !chestOpened) {
-    openShapeTalk('quiz', () => { chestOpened=true;showQuestion();showReward('quiz'); });
+    openShapeTalk('quiz', () => { chestOpened=true;questChime('win');showQuestion();showReward('quiz'); });
     return;
   }
   questionIndex = (questionIndex+1)%questions.length;
-  chestOpened = false;
+  chestOpened = false;questHintCell=null;
   Object.assign(state.quiz,{stacks:emptyBoard(),history:[],mode:'add'});
-  solved = false; showQuestion(); tell('설명을 읽고 첫 블록을 놓아 보세요.'); updateBoard();
+  solved = false;showQuestion();tell('토끼와 함께 새 단서를 읽어 봐요.');updateBoard();
+  focusQuestMap();
 });
 $('#modes').addEventListener('click',event => {
   if (!event.target.dataset.mode) return;
@@ -181,6 +201,8 @@ function route(moveFocus) {
   }
   active = concepts || Object.hasOwn(lessons,name) ? name : 'home';
   const home = active === 'home';
+  $('#quest-game').hidden=active!=='quiz';
+  $('#workshop').dataset.quest=active==='quiz' ? (questStarted ? 'play' : 'intro') : '';
   $('#home').hidden = !home; $('#workshop').hidden = home || concepts; $('#concepts').hidden=!concepts;
   $('#play-tab').setAttribute('aria-current',concepts ? 'false' : 'page');
   $('#concept-tab').setAttribute('aria-current',concepts ? 'page' : 'false');
@@ -192,7 +214,7 @@ function route(moveFocus) {
     $('#activity-title').textContent = lessons[active].title;
     $('#instruction').textContent = lessons[active].instruction;
     $('#reflect').textContent = lessons[active].reflect;
-    $('#board-title').textContent = art ? '내 작품' : '쌓기판';
+    $('#board-title').textContent = art ? '내 작품' : quiz ? '탐험 쌓기판' : '쌓기판';
     $('#quiz-actions').hidden = !quiz;
     $('#mission-icon').replaceChildren(festivalIcon(active));
     $('#modes').hidden = art; $('#view-toggle').hidden = !quiz;

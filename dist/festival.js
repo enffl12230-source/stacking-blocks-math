@@ -95,8 +95,7 @@ function renderMission() {
   const draw = document.querySelector('#draw-card');
   const title = document.querySelector('#mission-title');
   const body = document.querySelector('#mission-text');
-  const trail = document.querySelector('#trail');
-  action.hidden = true; draw.hidden = active!=='art'; trail.hidden = active!=='quiz';
+  action.hidden = true; draw.hidden = active!=='art';
   if (active==='practice') {
     const step=stairStep();
     title.textContent = '당근까지 '+step+' / 3칸';
@@ -108,14 +107,9 @@ function renderMission() {
     action.textContent = practiceDelivered ? '계단 다시 만들기' : '당근 건네기';
     if (practiceDelivered && step===3) body.textContent='토끼가 당근을 받았어요! 다른 모양도 자유롭게 쌓아 보세요.';
   } else if (active==='quiz') {
-    title.textContent = '별 조각 '+(questionIndex+1)+'번째 단서';
+    title.textContent = (questionIndex+1)+'번째 섬 · '+questIslands[questionIndex].name;
     body.textContent = questions[questionIndex].text;
-    const stars=questionIndex+Number(solved);
-    trail.replaceChildren();
-    for (let i=0;i<questions.length;i++) {
-      const star=festivalIcon('quiz');star.classList.toggle('collected',i<stars);trail.append(star);
-    }
-    trail.setAttribute('role','img');trail.setAttribute('aria-label','별 '+stars+'개, 모두 '+questions.length+'개');
+    renderQuest();
   } else {
     const order = orders[orderIndex];
     title.textContent = order ? '손님의 주문 · '+order.name : '첫 손님이 왔어요!';
@@ -126,6 +120,8 @@ function renderMission() {
   }
 }
 function showReward(key) {
+  document.querySelector('#reward').classList.toggle('quest-win',key==='quiz');
+  document.querySelector('#reward-shop').hidden=key!=='quiz';
   earnedStamps.add(key);
   try { sessionStorage.setItem(stickerKey,JSON.stringify([...earnedStamps])); } catch {}
   renderPassport();

@@ -7,6 +7,7 @@
   <meta name="description" content="격자를 눌러 쌓고, 설명을 읽고, 나만의 쌓기나무 작품을 만들어요.">
   <title>쌓기나무 놀이터</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="treasure.css">
   <script src="drawing.js" defer></script>
   <script src="art.js" defer></script>
   <script src="festival.js" defer></script>
@@ -14,6 +15,7 @@
   <script src="shape-talk.js" defer></script>
   <script src="art-shop.js" defer></script>
   <script src="concepts.js" defer></script>
+  <script src="treasure.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -68,12 +70,28 @@
         <div><a class="back" href="#home">놀이 마당</a><h1 id="activity-title" tabindex="-1"></h1></div>
         <p id="instruction"></p>
       </div>
+      <section id="quest-game" aria-label="별섬 탐험 지도" hidden>
+        <div class="quest-hud">
+          <div class="quest-counter"><span>찾은 별</span><b id="quest-count">0 / 5</b></div>
+          <button type="button" id="quest-sound" aria-pressed="false">효과음 켜기</button>
+        </div>
+        <div class="quest-landscape">
+          <canvas id="quest-map" width="460" height="142" aria-hidden="true"></canvas>
+          <canvas id="quest-rabbit" width="19" height="23" aria-hidden="true"></canvas>
+          <canvas id="quest-chest" width="18" height="16" aria-hidden="true"></canvas>
+          <button type="button" id="quest-pickup" aria-label="반짝이는 별 줍기" hidden><span aria-hidden="true">★</span></button>
+          <span id="quest-flying-star" aria-hidden="true">★</span>
+        </div>
+        <div class="quest-intro">
+          <div><h2>잠든 별섬을 깨워 줘!</h2><p>다섯 섬에 별이 숨어 있어요. 토끼와 함께 단서대로 블록을 쌓고 보물을 찾아요.</p></div>
+          <button type="button" id="quest-start">탐험 시작</button>
+        </div>
+        <div id="quiz-wallet" hidden><b data-balance></b> <a href="#art">미술 도구 가게</a></div>
+      </section>
       <section class="mission" aria-labelledby="mission-title">
         <span class="mission-icon" id="mission-icon" aria-hidden="true"></span>
         <div class="mission-copy">
-          <h2 id="mission-title"></h2><p id="mission-text"></p>
-          <div id="quiz-wallet" hidden><b data-balance></b> <a href="#art">미술 도구 가게 가기</a></div>
-          <div id="trail" aria-label="모은 별" hidden></div>
+          <h2 id="mission-title" tabindex="-1"></h2><p id="mission-text"></p>
         </div>
         <div class="mission-actions"><button id="mission-action" class="primary" hidden></button><button id="draw-card" hidden>다른 주문 뽑기</button></div>
       </section>
@@ -97,7 +115,7 @@
             <button data-mode="remove" aria-pressed="false">빼기</button>
           </div>
           <div id="quiz-actions" hidden>
-            <button class="primary" id="check">정답 확인</button><button id="hint">힌트</button>
+            <button class="primary" id="check">별 찾기</button><button id="hint">토끼 힌트</button>
             <button class="primary" id="next" hidden>다음 문제</button>
           </div>
           <p id="feedback" role="status" aria-live="polite"></p>
@@ -141,7 +159,7 @@
     <div class="reward-body">
       <div id="reward-art"></div>
       <h2 id="reward-title"></h2><p id="reward-text"></p>
-      <div class="reward-actions"><button id="reward-home" class="primary">내 도장 보러 가기</button><button id="reward-stay">계속 놀기</button></div>
+      <div class="reward-actions"><a class="concept-play" id="reward-shop" href="#art" hidden>미술 도구 사러 가기</a><button id="reward-home" class="primary">내 도장 보러 가기</button><button id="reward-stay">계속 놀기</button></div>
     </div>
   </dialog>
   <footer><span>초등 2학년 수학 · 도형과 측정</span><span>[2수03-02] 입체도형의 모양</span></footer>
