@@ -81,7 +81,7 @@ function orderFits() {
   if (orderIndex < 0) return false;
   const theme = orders[orderIndex].theme;
   return artBlocks.some((a,i) => artBlocks.slice(i+1).some(b => {
-    const relation = neighborLocation(artPosition(a),artPosition(b));
+    const relation = neighborLocation(a,b);
     const above = relation==='above' || relation==='below';
     const beside = Boolean(relation) && !above;
     if (theme==='color') return a.color!==b.color && (above||beside);
@@ -133,7 +133,7 @@ function showReward(key) {
   art.replaceChildren();
   let title, speech;
   if (key==='art') {
-    const preview=svgNode('svg',{viewBox:'0 0 560 380',role:'img','aria-label':'내가 만든 '+orders[orderIndex].name});
+    const preview=svgNode('svg',{viewBox:artViewBox(),role:'img','aria-label':'내가 만든 '+orders[orderIndex].name});
     for (const piece of artBoard.children) if (piece.hasAttribute('data-art-id')) preview.append(piece.cloneNode(true));
     art.append(preview);title=orders[orderIndex].name+' 전시회';speech=orders[orderIndex].talk+' 친구에게 소개해 보세요.';
   } else {

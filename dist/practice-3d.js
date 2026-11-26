@@ -63,6 +63,7 @@ function projectBlock(x,level,z,color,view,group,hidden,stamp=false) {
   return group;
 }
 function drawBlockBoard() {
+  artBoard.setAttribute('viewBox','0 0 560 380');
   if (active==='art') { drawArtOrbit(); return; }
   const view=sceneProjection(camera,[0,1.35,0],54,280,190);
   const fragment=document.createDocumentFragment(), blocks=[];
@@ -137,7 +138,7 @@ function updateViewControls() {
   for (const button of document.querySelectorAll('[data-camera]')) button.setAttribute('aria-pressed',String(button.dataset.camera===camera.preset));
 }
 function drawArtOrbit() {
-  const model=artBlocks.map(block=>({...artPosition(block),stamp:block.stamp}));
+  const model=[...artBlocks];
   if (!model.length) {
     artBoard.replaceChildren(boardLabel(280,190,'블록을 놓으면 여기서 돌려 볼 수 있어요.'));
     updateViewControls();

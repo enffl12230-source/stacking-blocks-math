@@ -2,7 +2,13 @@
 const paints = {
   wood: { name: '나무색', top: '#f3d5aa', left: '#d5a36e', right: '#ba8956', edge: '#986b43' },
   red: { name: '빨간색', top: '#ff9c83', left: '#e77057', right: '#c45242', edge: '#ac4939' },
-  yellow: { name: '노란색', top: '#ffe38d', left: '#f4c445', right: '#d89e27', edge: '#af8328' }
+  yellow: { name: '노란색', top: '#ffe38d', left: '#f4c445', right: '#d89e27', edge: '#af8328' },
+  orange: { name:'주황색', top:'#ffc28a', left:'#f7944b', right:'#d67136', edge:'#a34c24' },
+  green: { name:'초록색', top:'#a2daa0', left:'#6eb477', right:'#4d935e', edge:'#386c47' },
+  sky: { name:'하늘색', top:'#b0e8f7', left:'#7bc6e0', right:'#52a4c2', edge:'#39798f' },
+  blue: { name:'파란색', top:'#98bdff', left:'#6393e5', right:'#4875c3', edge:'#31558f' },
+  purple: { name:'보라색', top:'#ceb2eb', left:'#a286c9', right:'#8164ae', edge:'#644985' },
+  pink: { name:'분홍색', top:'#ffc0d4', left:'#eb95b2', right:'#cb7395', edge:'#9a526f' }
 };
 function svgNode(name, attributes = {}) {
   const node = document.createElementNS('http://www.w3.org/2000/svg', name);

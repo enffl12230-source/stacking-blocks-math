@@ -59,6 +59,16 @@ button[aria-pressed="true"], .primary { background: var(--blue); border-color: v
 .block-option { display: grid; place-items: center; min-height: 74px; padding: 5px; font-size: 15px; }
 .block-option svg { width: 40px; height: 38px; }
 .block-option[aria-pressed="true"] { background: #eff2fc; color: var(--ink); box-shadow: inset 0 0 0 1px var(--blue); }
+#board.art-board { -webkit-tap-highlight-color:transparent; }
+#board [data-art-id] > polygon { stroke-width:1.2; }
+#board .art-level-label { fill:#203653; stroke:white; stroke-width:3px; paint-order:stroke; }
+@media (max-width:740px) {
+  #palette:has(.art-tool) { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  #palette .art-tool { min-height:56px; padding:3px 1px; font-size:.86rem; }
+  #palette .art-tool svg { width:32px; height:25px; }
+}
+#board .picked-block { filter:drop-shadow(0 0 3px #38589d); }
+#board .picked-block polygon { stroke:#36477a; stroke-width:2; }
 .art-tool { touch-action: none; cursor: grab; }
 .modes, .secondary, #quiz-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .modes button { flex: 1; }

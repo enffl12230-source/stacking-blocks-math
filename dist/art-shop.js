@@ -32,7 +32,7 @@ function claimClue(index) {
   return true;
 }
 function toolInstruction() {
-  if (artTool==='build') return '색을 고르고 작업판을 누르거나 블록을 끌어와요.';
+  if (artTool==='build') return '블록을 톡 누르면 한 층 더 쌓여요. 꾹 누른 뒤 끌면 블록을 옮길 수 있어요.';
   if (artTool==='copy' && copySource) return '새 블록을 놓을 자리를 톡 눌러요.';
   return artTools[artTool].help;
 }
@@ -73,7 +73,7 @@ async function useShopItem(key) {
 function applyArtTool(p,id) {
   const block=artBlocks.find(b=>b.id===id);
   if (artTool==='copy' && copySource && artBlocks.some(b=>b.id===copySource.id)) {
-    placeArt(p,copySource.color,undefined,copySource.stamp);
+    placeArt(p,copySource.color,null,copySource.stamp,block);
     copySource=null;
     return;
   }

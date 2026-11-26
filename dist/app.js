@@ -12,7 +12,7 @@ const questions = [
 const lessons = {
   practice:{title:'토끼의 당근 계단', instruction:'격자를 톡 눌러 세 층까지 쌓아요. 판을 꾹 누른 채 끌면 빙글빙글 돌아가요.', reflect:'토끼가 있는 자리와 당근이 있는 자리를 친구에게 말해 보세요.'},
   quiz:{title:'별빛 보물찾기', instruction:'단서대로 쌓고 판을 돌려 살펴봐요. 단서를 처음 맞히면 미술 도구를 살 별빛 크레딧을 받아요.', reflect:'어려우면 ‘힌트’를 눌러요. 블록 색은 마음대로 골라도 좋아요.'},
-  art:{title:'축제 장난감 가게', instruction:'블록을 끌어와 붙여요. ‘작품 돌리기’로 모든 면을 살펴보고 미술 도구로 꾸며요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
+  art:{title:'축제 장난감 가게', instruction:'색을 고르고 빈 곳을 톡 눌러요. 블록을 톡 누르면 위로 쌓고, 꾹 누른 채 끌면 옮겨요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
 };
 const state = Object.fromEntries(Object.keys(lessons).map(key => [key,{
   color:'wood', mode:'add', stacks:emptyBoard(), history:[], message:''
@@ -91,7 +91,9 @@ function updateBoard() {
   const count = art ? artBlocks.length : s.stacks.reduce((sum,stack) => sum+stack.length,0);
   if (art && !artSpinning) drawArt();
   else drawBlockBoard();
-  $('#count').textContent = '블록 '+count+'개';
+  let countLabel='블록 '+count+'개';
+  if (art && count) countLabel+=' · 가장 높은 탑 '+artBlocks.reduce((h,b)=>Math.max(h,b.level+1),0)+'층';
+  $('#count').textContent=countLabel;
   $('#undo').disabled = !s.history.length;
   $('#clear').disabled = count === 0;
   $('#orientation').textContent = art ? (artSpinning ? '작품을 끌어 돌려요. 다 보았으면 ‘다시 꾸미기’를 눌러요.' : toolInstruction()) :
@@ -147,6 +149,7 @@ $('#modes').addEventListener('click',event => {
 });
 $('#view-toggle').addEventListener('click',() => setBoardCamera(camera.preset==='top' ? 'home' : 'top'));
 $('#clear').addEventListener('click',() => {
+  if (active==='art') cancelDrag();
   saveUndo();
   if (active === 'art') artBlocks.length = 0;
   else currentState().stacks = emptyBoard();
@@ -155,6 +158,7 @@ $('#clear').addEventListener('click',() => {
 $('#undo').addEventListener('click',() => {
   const s = currentState();
   if (!s.history.length) return;
+  if (active==='art') cancelDrag();
   const previous = JSON.parse(s.history.pop());
   if (active === 'art') artBlocks.splice(0,artBlocks.length,...previous);
   else s.stacks = previous;
@@ -201,7 +205,10 @@ function route(moveFocus) {
       artBoard.setAttribute('tabindex','0');
       artBoard.setAttribute('aria-label','작업판. 방향키로 위치를 고르고 엔터로 도구를 써요.');
     } else { artBoard.removeAttribute('tabindex'); artBoard.removeAttribute('aria-label'); }
-    for (const el of $('#palette').children) el.classList.toggle('art-tool',art);
+    for (const el of $('#palette').children) {
+      el.hidden=!art && !['wood','red','yellow'].includes(el.dataset.color);
+      el.classList.toggle('art-tool',art);
+    }
     chooseColor(currentState().color);
     if (quiz) showQuestion();
     $('#feedback').textContent = currentState().message;

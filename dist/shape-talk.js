@@ -5,12 +5,6 @@ const oppositeLocation = {right:'left', left:'right', front:'back', back:'front'
 const talkCube = {width:35, depth:17.5, height:39};
 let talkRound = null;
 
-function artPosition(block) {
-  // Reverse the board's isometric projection, including the vertical layer.
-  const across = block.x / artWidth;
-  const along = (block.y + block.level * artHeight) / artDepth;
-  return {col:(along+across)/2, row:(along-across)/2, level:block.level, color:block.color};
-}
 function neighborLocation(reference, target) {
   const offset = [target.col-reference.col, target.row-reference.row, target.level-reference.level];
   const [col,row,level] = offset.map(Math.round);
@@ -21,7 +15,7 @@ function neighborLocation(reference, target) {
   return level>0 ? 'above' : 'below';
 }
 function modelForTalk(key) {
-  if (key==='art') return artBlocks.map(artPosition);
+  if (key==='art') return artBlocks.map(b=>({...b}));
   return state[key].stacks.flatMap((stack, index) => stack.map((color,level) => ({
     col:index%size, row:Math.floor(index/size), level, color
   })));
