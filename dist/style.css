@@ -171,7 +171,8 @@ dialog::backdrop { background:#20233c9e; }
 .concept-copy { padding:clamp(16px,3vw,32px); align-self:center; }
 .concept-copy h2 { margin:0 0 8px; font-size:1.45rem; }
 #concept-reading { background:#faf2d8; color:#574628; border-radius:12px; padding:12px; }
-.concept-play { display:inline-block; margin:15px 0 0; color:white; background:var(--blue); }
+.concept-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:15px; }
+.concept-play { display:inline-block; color:white; background:var(--blue); }
 @media(max-width:650px) {
   .concept-card { grid-template-columns:1fr; }
   #concept-picture { height:200px; }

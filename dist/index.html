@@ -18,14 +18,14 @@
 </head>
 <body>
   <header class="mast">
-    <a href="#home" class="brand"><span class="logo" id="logo" aria-hidden="true"></span>쌓기나무 놀이터</a>
+    <a href="#concepts" class="brand"><span class="logo" id="logo" aria-hidden="true"></span>쌓기나무 놀이터</a>
     <nav class="main-tabs" aria-label="놀이터 메뉴">
+      <a href="#concepts" id="concept-tab" aria-current="page">쌓기나무 개념</a>
       <a href="#home" id="play-tab">놀이 마당</a>
-      <a href="#concepts" id="concept-tab">쌓기나무 개념</a>
     </nav>
   </header>
   <main>
-    <section id="home" aria-labelledby="home-title">
+    <section id="home" hidden aria-labelledby="home-title">
       <div class="hero">
         <div class="hero-copy">
           <h1 id="home-title" tabindex="-1">쌓기나무<br><em>놀이터</em></h1>
@@ -43,7 +43,7 @@
         <ul id="stamps"></ul>
       </section>
     </section>
-    <section id="concepts" hidden aria-labelledby="concept-title">
+    <section id="concepts" aria-labelledby="concept-title">
       <h1 id="concept-title" tabindex="-1">쌓기나무 개념</h1>
       <div id="concept-topics" role="group" aria-label="살펴볼 개념">
         <button type="button" data-topic="cube" aria-pressed="true">쌓기나무 한 개</button>
@@ -58,11 +58,14 @@
           <p id="concept-reading" aria-live="polite"></p>
         </div>
       </div>
-      <a class="concept-play" id="concept-return" href="#practice">연습판에서 쌓아 보기</a>
+      <div class="concept-actions">
+        <button type="button" id="concept-next" class="primary">다음 개념 보기</button>
+        <a class="concept-play" id="concept-return" href="#home" hidden>놀이 고르기</a>
+      </div>
     </section>
     <section id="workshop" hidden aria-labelledby="activity-title">
       <div class="activity-heading">
-        <div><a class="back" href="#home">처음 화면</a><h1 id="activity-title" tabindex="-1"></h1></div>
+        <div><a class="back" href="#home">놀이 마당</a><h1 id="activity-title" tabindex="-1"></h1></div>
         <p id="instruction"></p>
       </div>
       <section class="mission" aria-labelledby="mission-title">

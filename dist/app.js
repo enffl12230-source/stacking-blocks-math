@@ -166,14 +166,14 @@ function route(moveFocus) {
   if ($('#reward').open) $('#reward').close();
   cancelDrag();
   artSpinning=false;
-  const name = location.hash.slice(1);
+  const name = location.hash.slice(1) || 'concepts';
   const concepts = name==='concepts';
   if (concepts && Object.hasOwn(lessons,active)) {
     $('#concept-return').href='#'+active;
     $('#concept-return').textContent=lessons[active].title+' 이어 하기';
   } else if (concepts && active==='home') {
-    $('#concept-return').href='#practice';
-    $('#concept-return').textContent='연습판에서 쌓아 보기';
+    $('#concept-return').href='#home';
+    $('#concept-return').textContent='놀이 고르기';
   }
   active = concepts || Object.hasOwn(lessons,name) ? name : 'home';
   const home = active === 'home';

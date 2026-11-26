@@ -70,6 +70,12 @@ function renderConcept() {
   document.querySelector('#concept-heading').textContent=topic.title;
   document.querySelector('#concept-explanation').textContent=topic.text;
   for (const button of document.querySelectorAll('[data-topic]')) button.setAttribute('aria-pressed',String(button.dataset.topic===conceptTopic));
+  const nextTopic=document.querySelector('#concept-topics [aria-pressed="true"]').nextElementSibling;
+  const next=document.querySelector('#concept-next');
+  next.hidden=!nextTopic;
+  if (nextTopic) next.textContent='다음 개념 · '+nextTopic.textContent;
+  const returnLink=document.querySelector('#concept-return');
+  returnLink.hidden=Boolean(nextTopic) && returnLink.hash==='#home';
   const controls=document.querySelector('#concept-controls');
   if (controls.dataset.topic!==conceptTopic) {
     controls.dataset.topic=conceptTopic;
@@ -87,6 +93,10 @@ function renderConcept() {
 document.querySelector('#concept-topics').addEventListener('click',event=>{
   const button=event.target.closest('[data-topic]');
   if (button) {conceptTopic=button.dataset.topic;renderConcept();}
+});
+document.querySelector('#concept-next').addEventListener('click',()=>{
+  const nextTopic=document.querySelector('#concept-topics [aria-pressed="true"]').nextElementSibling;
+  if (nextTopic) { nextTopic.click();nextTopic.focus(); }
 });
 document.querySelector('#concept-controls').addEventListener('click',event=>{
   const button=event.target.closest('[data-example]');
