@@ -81,9 +81,9 @@ function orderFits() {
   if (orderIndex < 0) return false;
   const theme = orders[orderIndex].theme;
   return artBlocks.some((a,i) => artBlocks.slice(i+1).some(b => {
-    const dx=Math.abs(a.x-b.x), dy=Math.abs(a.y-b.y);
-    const above = dx<1 && Math.abs(dy-artHeight)<1 && Math.abs(a.level-b.level)===1;
-    const beside = Math.abs(dx-artWidth)<1 && Math.abs(dy-artDepth)<1 && a.level===b.level;
+    const relation = neighborLocation(artPosition(a),artPosition(b));
+    const above = relation==='above' || relation==='below';
+    const beside = Boolean(relation) && !above;
     if (theme==='color') return a.color!==b.color && (above||beside);
     return theme==='stack' ? above : beside;
   }));
@@ -151,10 +151,12 @@ document.querySelector('#mission-action').addEventListener('click',()=>{
       practiceDelivered=false;
       document.querySelector('#clear').click();
       state.practice.mode='add';updateBoard();
-    } else { practiceDelivered=true;updateBoard();showReward('practice'); }
+    } else {
+      openShapeTalk('practice', () => { practiceDelivered=true;updateBoard();showReward('practice'); });
+    }
   }
   if (active==='art' && orderIndex>=0) {
-    if (orderFits()) {drawArt();showReward('art');}
+    if (orderFits()) openShapeTalk('art', () => { drawArt();showReward('art'); });
     else {
       const reminder = '조금 더 만들어 볼까요? '+orders[orderIndex].request;
       document.querySelector('#mission-text').textContent = reminder;

@@ -115,6 +115,7 @@ artBoard.addEventListener('keydown', event => {
 });
 function updateBoard() {
   const s = currentState(), art = active === 'art';
+  $('#reflect').textContent = lessons[active].reflect;
   const count = art ? artBlocks.length : s.stacks.reduce((sum,stack) => sum+stack.length,0);
   if (art) drawArt();
   else if (active === 'practice') drawPractice();
@@ -158,7 +159,8 @@ $('#hint').addEventListener('click', () => tell(questions[questionIndex].hint));
 $('#next').addEventListener('click', () => {
   if (!solved) return;
   if (questionIndex === questions.length-1 && !chestOpened) {
-    chestOpened = true; showQuestion(); showReward('quiz'); return;
+    openShapeTalk('quiz', () => { chestOpened=true;showQuestion();showReward('quiz'); });
+    return;
   }
   questionIndex = (questionIndex+1)%questions.length;
   chestOpened = false;
@@ -188,6 +190,7 @@ $('#undo').addEventListener('click',() => {
 });
 function route(moveFocus) {
   endOrbit();
+  if ($('#talk').open) $('#talk').close();
   if ($('#reward').open) $('#reward').close();
   cancelDrag();
   const name = location.hash.slice(1);

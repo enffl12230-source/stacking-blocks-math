@@ -145,6 +145,23 @@ dialog::backdrop { background:#20233c9e; }
 #reward-art svg { width:95px; }
 #reward-art svg[role="img"] { width:100%; border:6px double #c3a56d; background:#fff4dd; border-radius:12px; max-height:36vh; }
 .reward-actions { margin-top:18px; justify-content:center; }
+.talk-entry { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:16px; }
+.talk-entry .reflect { margin:0; }
+#talk { width:min(550px,94vw); text-align:left; border-color:#b5c9bf; background:#fbfdf9; overscroll-behavior:contain; }
+.talk-body { padding:clamp(14px,3vw,24px); }
+.talk-body h2 { margin:0 0 .35em; font-size:1.4rem; line-height:1.2; }
+.talk-figure { margin:12px 0 6px; background:#edf2ef; border:1px solid #d4dfd9; border-radius:14px; }
+#talk-picture { display:block; width:100%; height:clamp(120px,24vh,210px); }
+.talk-figure figcaption { text-align:center; padding:4px; color:#455b52; font-size:.9rem; }
+.talk-tools, .talk-actions, #talk-words { display:flex; flex-wrap:wrap; gap:6px; }
+.talk-tools button { font-size:.9rem; }
+.talk-body fieldset { min-width:0; border:0; padding:0; margin:15px 0 0; }
+.talk-body legend { font-weight:800; margin-bottom:7px; }
+#talk-words button { flex:1 1 55px; }
+#talk-feedback { min-height:2.8em; margin:10px 0; color:#384e79; }
+.teacher-note { width:min(1080px,92%); margin:0 auto 20px; color:var(--muted); }
+.teacher-note summary { cursor:pointer; font-weight:700; }
+.teacher-note p { margin:.5em 0; }
 @media (prefers-reduced-motion:no-preference) {
   .reward-body { animation:celebrate .25s ease-out; }
   @keyframes celebrate { from { opacity:.6; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
