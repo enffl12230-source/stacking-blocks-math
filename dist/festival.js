@@ -8,7 +8,6 @@ try {
   if (Array.isArray(saved)) earnedStamps = new Set(saved.filter(key => Object.hasOwn(festivalNames,key)));
 } catch { /* The current visit still has a stamp book when storage is unavailable. */ }
 
-const stairs = [{index:12,height:1},{index:13,height:2},{index:14,height:3}];
 const orders = [
   {name:'반짝 등대', request:'블록을 위로 붙여 두 층 이상의 등대를 만들어 줘!', theme:'stack', talk:'등대 꼭대기에 어떤 색 블록이 있나요?'},
   {name:'별빛 기차', request:'블록 두 개를 옆면끼리 붙여 기차를 만들어 줘!', theme:'side', talk:'기관차 옆에 어떤 색 객차가 있나요?'},
@@ -60,10 +59,6 @@ function renderPassport() {
   }
   document.querySelector('#stamp-count').textContent = earnedStamps.size === 3 ? '도장 3개 완성! 별빛 축제가 열렸어요.' : '모은 도장 '+earnedStamps.size+' / 3';
 }
-function stairStep() {
-  const first = stairs.findIndex(s => state.practice.stacks[s.index].length !== s.height);
-  return first < 0 ? stairs.length : first;
-}
 function drawOrder() {
   if (!orderDeck.length) {
     orderDeck = orders.map((_,i)=>i);
@@ -96,16 +91,10 @@ function renderMission() {
   const title = document.querySelector('#mission-title');
   const body = document.querySelector('#mission-text');
   action.hidden = true; draw.hidden = active!=='art';
+  document.querySelector('#rabbit-guide').hidden=true;
+  document.querySelector('#rabbit-feedback').hidden=active!=='practice';
   if (active==='practice') {
-    const step=stairStep();
-    title.textContent = '당근까지 '+step+' / 3칸';
-    body.textContent = step===3 ? '계단이 이어졌어요! 토끼에게 당근을 건네주세요.' :
-      ['반짝이는 앞줄 왼쪽 끝에 블록 한 개를 놓아 주세요.','한 칸 오른쪽에 두 층을 쌓아 주세요.','다시 한 칸 오른쪽에 세 층을 쌓아 주세요.'][step];
-    if (step<3 && state.practice.stacks[stairs[step].index].length>stairs[step].height)
-      body.textContent = '표시된 칸이 높아요. ‘빼기’로 '+stairs[step].height+'층을 만들어 주세요.';
-    action.hidden = step!==3;
-    action.textContent = practiceDelivered ? '계단 다시 만들기' : '당근 건네기';
-    if (practiceDelivered && step===3) body.textContent='토끼가 당근을 받았어요! 다른 모양도 자유롭게 쌓아 보세요.';
+    renderRabbit(title,body,action);
   } else if (active==='quiz') {
     title.textContent = (questionIndex+1)+'번째 섬 · '+questIslands[questionIndex].name;
     body.textContent = questions[questionIndex].text;
@@ -130,27 +119,19 @@ function showReward(key) {
   let title, speech;
   if (key==='art') {
     const preview=svgNode('svg',{viewBox:artViewBox(),role:'img','aria-label':'내가 만든 '+orders[orderIndex].name});
-    for (const piece of artBoard.children) if (piece.hasAttribute('data-art-id')) preview.append(piece.cloneNode(true));
+    for (const piece of artBoard.children) if (piece.hasAttribute('data-art-id') || piece.hasAttribute('data-art-decoration')) preview.append(piece.cloneNode(true));
     art.append(preview);title=orders[orderIndex].name+' 전시회';speech=orders[orderIndex].talk+' 친구에게 소개해 보세요.';
   } else {
     art.append(festivalIcon(key==='practice'?'practice':'chest'));
     title=key==='practice'?'토끼가 당근을 받았어요!':'별빛 보물상자가 열렸어요!';
-    speech=key==='practice'?'토끼가 오른 계단을 왼쪽부터 몇 층인지 말해 보세요.':'상자 속에 별빛 도장이 들어 있었어요. 마지막 탑은 어느 쪽에 있었나요?';
+    speech=key==='practice'?'네가 알려 준 길을 따라 세 층까지 올라왔어!':'상자 속에 별빛 도장이 들어 있었어요. 마지막 탑은 어느 쪽에 있었나요?';
   }
   document.querySelector('#reward-title').textContent=title;
   document.querySelector('#reward-text').textContent=speech;
   document.querySelector('#reward').showModal();
 }
 document.querySelector('#mission-action').addEventListener('click',()=>{
-  if (active==='practice' && stairStep()===3) {
-    if (practiceDelivered) {
-      practiceDelivered=false;
-      document.querySelector('#clear').click();
-      state.practice.mode='add';updateBoard();
-    } else {
-      openShapeTalk('practice', () => { practiceDelivered=true;updateBoard();showReward('practice'); });
-    }
-  }
+  if (active==='practice') handleRabbitAction();
   if (active==='art' && orderIndex>=0) {
     if (orderFits()) openShapeTalk('art', () => {
       drawArt();showReward('art');

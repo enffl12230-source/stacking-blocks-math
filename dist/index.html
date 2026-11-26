@@ -11,6 +11,7 @@
   <script src="drawing.js" defer></script>
   <script src="art.js" defer></script>
   <script src="festival.js" defer></script>
+  <script src="rabbit.js" defer></script>
   <script src="practice-3d.js" defer></script>
   <script src="shape-talk.js" defer></script>
   <script src="art-shop.js" defer></script>
@@ -60,6 +61,11 @@
         <div class="concept-copy">
           <h2 id="concept-heading"></h2><p id="concept-explanation"></p>
           <div id="concept-controls" role="group" aria-label="그림 바꾸기"></div>
+          <form id="layer-quiz" hidden novalidate>
+            <label for="layer-answer">쌓기나무가 모두 몇 개인가요?</label>
+            <div><input id="layer-answer" type="text" inputmode="numeric" autocomplete="off" maxlength="3" aria-describedby="layer-response"> 개 <button type="submit">답 확인</button></div>
+            <p id="layer-response" role="status"></p>
+          </form>
           <p id="concept-reading" aria-live="polite"></p>
         </div>
       </div>
@@ -95,12 +101,20 @@
         <span class="mission-icon" id="mission-icon" aria-hidden="true"></span>
         <div class="mission-copy">
           <h2 id="mission-title" tabindex="-1"></h2><p id="mission-text"></p>
+          <p id="rabbit-feedback" role="status" hidden></p>
         </div>
         <div class="mission-actions"><button id="mission-action" class="primary" hidden></button><button id="draw-card" hidden>다른 주문 뽑기</button></div>
+        <div id="rabbit-guide" hidden><p id="rabbit-prompt"></p><div id="rabbit-directions" role="group" aria-label="토끼가 갈 방향"><button type="button" data-hop="왼쪽">왼쪽</button><button type="button" data-hop="오른쪽">오른쪽</button><button type="button" data-hop="앞">앞</button><button type="button" data-hop="뒤">뒤</button></div><p id="rabbit-note" role="status"></p></div>
       </section>
       <div class="layout">
         <div class="bench">
           <div class="bench-head"><h2 id="board-title">쌓기판</h2><button type="button" id="art-spin" aria-pressed="false" hidden>작품 돌리기</button><span id="count"></span></div>
+          <div id="art-options" hidden>
+            <div data-options="size" hidden><label for="art-size">작품 전체 크기</label> <select id="art-size"><option value="0.75">작게</option><option value="1" selected>기본</option><option value="1.3">크게</option></select></div>
+            <div data-options="background" hidden><label for="art-background">작품 배경</label> <select id="art-background"><option value="plain">그림 종이</option><option value="forest">초록 숲</option><option value="sunset">노을 하늘</option><option value="night">별이 뜬 밤</option></select></div>
+            <form data-options="bubble" hidden><label for="bubble-text">작품이 하고 싶은 말</label> <input id="bubble-text" maxlength="24" autocomplete="off" placeholder="예쁜 꽃을 보러 가자!"><button type="submit">말풍선 넣기</button><button id="bubble-remove" type="button">말풍선 빼기</button></form>
+            <button id="build-tool" type="button" hidden>꾸미기 닫기</button>
+          </div>
           <div class="board-stage">
             <svg id="board" viewBox="0 0 560 380" role="group" aria-labelledby="board-title"></svg>
             <div id="camera-controls" role="group" aria-label="쌓기나무를 바라볼 위치" hidden>
@@ -129,15 +143,15 @@
         <div class="shop-heading"><h2 id="shop-title">미술 도구 가게</h2><b data-balance></b></div>
         <p>별빛 보물찾기에서 단서를 처음 맞힐 때마다 1크레딧을 받아요. 산 도구는 계속 쓸 수 있어요.</p>
         <div id="shop-items"></div>
-        <div class="shop-foot"><button id="build-tool" type="button" aria-pressed="true">블록 쌓기</button><a href="#quiz">별빛 보물찾기 가기</a></div>
+        <div class="shop-foot"><a href="#quiz">별빛 보물찾기 가기</a></div>
         <p id="shop-status" role="status"></p>
       </section>
-      <div class="talk-entry"><button id="talk-open" type="button">내 모양 설명하기</button><p id="reflect" class="reflect"></p></div>
+      <div class="talk-entry"><button id="talk-open" type="button">짝에게 쌓는 법 알려주기</button><p id="reflect" class="reflect"></p></div>
     </section>
   </main>
   <dialog id="talk" aria-labelledby="talk-title">
     <div class="talk-body">
-      <h2 id="talk-title">내가 만든 모양을 소개해요</h2>
+      <h2 id="talk-title">짝이 내 모양을 따라 쌓게 해요</h2>
       <p>그림에서 <b>가</b>를 먼저 짚어요. <b>나</b>가 어디에 있는지 친구에게 말해 보세요.</p>
       <figure class="talk-figure">
         <svg id="talk-picture" role="img" aria-label="내 모양에서 고른 가 블록과 나 블록"></svg>

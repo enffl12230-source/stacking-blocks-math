@@ -149,8 +149,8 @@ dialog::backdrop { background:#20233c9e; }
 .reward-body { padding:23px; background:#fffaf0; }
 .reward-body h2 { font-size:1.55rem; line-height:1.3; margin:12px 0 8px; }
 #reward-art { display:grid; place-items:center; }
-#reward-art svg { width:95px; }
-#reward-art svg[role="img"] { width:100%; border:6px double #c3a56d; background:#fff4dd; border-radius:12px; max-height:36vh; }
+#reward-art > svg { width:95px; }
+#reward-art > svg[role="img"] { width:100%; border:6px double #c3a56d; background:#fff4dd; border-radius:12px; max-height:36vh; }
 .reward-actions { margin-top:18px; justify-content:center; }
 .talk-entry { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:16px; }
 .talk-entry .reflect { margin:0; }
@@ -185,6 +185,18 @@ dialog::backdrop { background:#20233c9e; }
 [data-slot].aim .slot-ring { fill:#ffdf85; stroke:#77501d; stroke-width:3; }
 .concept-copy { padding:clamp(16px,3vw,32px); align-self:center; }
 .concept-copy h2 { margin:0 0 8px; font-size:1.45rem; }
+#layer-quiz { background:#faf2d8; border-radius:12px; padding:13px; }
+#layer-quiz label { display:block; margin-bottom:6px; font-weight:750; }
+#layer-answer { width:4em; text-align:center; }
+#layer-response:not(:empty), #rabbit-note:not(:empty) { margin-top:7px; }
+#layer-answer, #art-options input, #art-options select { font:inherit; padding:8px; border:1px solid #a9bac7; border-radius:8px; max-width:100%; }
+.mission:has(#rabbit-guide:not([hidden])) { flex-wrap:wrap; }
+#rabbit-guide { flex:1 0 100%; grid-column:1/-1; background:#fffaf0; border-radius:12px; padding:12px; }
+#rabbit-feedback:not(:empty) { margin-top:6px; color:#68471a; font-weight:750; }
+#rabbit-directions { display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; }
+#art-options { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 10px; padding:14px; border-radius:12px; background:#fff3d8; }
+#art-options label { font-weight:750; }
+#art-options form { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
 #concept-reading { background:#faf2d8; color:#574628; border-radius:12px; padding:12px; }
 .concept-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:15px; }
 .concept-play { display:inline-block; color:white; background:var(--blue); }

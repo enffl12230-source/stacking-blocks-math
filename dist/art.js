@@ -35,22 +35,28 @@ function artBlockAt(p,pieces=artBlocks) {
 }
 function withoutMovingBlock(piece) {
   if (!piece) return artBlocks;
+  const column=new Set(artBlocks.filter(b=>sameColumn(b,piece)).map(b=>b.level));
+  let gap=piece.level+1;
+  while(column.has(gap))gap++;
   return artBlocks.filter(b=>b.id!==piece.id).map(b=>
-    sameColumn(b,piece) && b.level>piece.level ? {...b,level:b.level-1} : b);
+    sameColumn(b,piece) && b.level>piece.level && b.level<gap ? {...b,level:b.level-1} : b);
 }
-function dropLocation(p,pieces=artBlocks,tapped=null) {
+function artFaceAt(p,block) {
+  const center=artCenter(block), dx=p.x-center.x;
+  const frontTop=center.y-artHeight/2+artDepth*(1-Math.abs(dx)/artWidth);
+  return p.y<=frontTop ? 'top' : dx<0 ? 'left' : 'right';
+}
+function dropLocation(p,pieces=artBlocks,tapped=null,face=null) {
+  const hit=tapped || artBlockAt(p,pieces);
+  if (hit) {
+    const side=face || artFaceAt(p,hit);
+    const cell={col:hit.col+Number(side==='right'),row:hit.row+Number(side==='left'),level:hit.level+Number(side==='top'),snapped:true};
+    return pieces.some(b=>sameColumn(b,cell) && b.level===cell.level) ? null : cell;
+  }
   const heights=new Map();
   const key=(c,r)=>c+','+r;
   for (const b of pieces) heights.set(key(b.col,b.row),Math.max(heights.get(key(b.col,b.row))||0,b.level+1));
   const height=(c,r)=>heights.get(key(c,r))||0;
-  const hit=tapped || artBlockAt(p,pieces);
-  if (hit) {
-    const center=artCenter(hit), dx=Math.abs(p.x-center.x), dy=p.y-center.y;
-    const topFace=Math.abs(dy+artHeight/2)<=artDepth*(1-dx/artWidth)+1;
-    if (tapped || (topFace && dx<artWidth*.75) || (dx<artWidth*.5 && Math.abs(dy)<artHeight*.4)) {
-      return {col:hit.col,row:hit.row,level:height(hit.col,hit.row),snapped:true};
-    }
-  }
   let best=null, bestScore=Infinity;
   for (const {col,row} of artFloor) {
     const level=height(col,row), center=artCenter({col,row,level});
@@ -61,26 +67,32 @@ function dropLocation(p,pieces=artBlocks,tapped=null) {
   return best;
 }
 function artViewBox() {
-  let top=0;
-  // Leave room to see the next block while the student aims above a tall tower.
-  for (const block of artBlocks) top=Math.min(top,artCenter(block).y-artHeight-40);
-  const height=380-top,width=height*560/380;
-  return [280-width/2,top,width,height].join(' ');
+  let left=0,right=560,top=0,bottom=380;
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const b of artBlocks){
+    const p=artCenter(b);
+    minX=Math.min(minX,p.x-artWidth-6);maxX=Math.max(maxX,p.x+artWidth+6);
+    minY=Math.min(minY,p.y-artHeight-40);maxY=Math.max(maxY,p.y+40);
+  }
+  left=Math.min(left,minX);right=Math.max(right,maxX);top=Math.min(top,minY);bottom=Math.max(bottom,maxY);
+  const ratio=560/380, scale=artStyle.scale;
+  // Leave room for the largest size even when the artwork grows beyond the original board.
+  const width=Math.max(right-left,(bottom-top)*ratio,(maxX-minX)*1.3,(maxY-minY)*ratio*1.3)/scale;
+  const height=width/ratio;
+  const x=Math.min(minX,Math.max(maxX-width,(left+right-width)/2));
+  const y=Math.min(minY,Math.max(maxY-height,(top+bottom-height)/2));
+  return [x,y,width,height].join(' ');
 }
 function drawArt(ghost = null) {
   artBoard.setAttribute('viewBox',artViewBox());
   const moving=drag?.picked && drag.moved && ghost;
   const pieces=moving ? withoutMovingBlock(drag.piece) : [...artBlocks];
-  if (ghost) pieces.push({...ghost, ghost:true, color:drag ? drag.color : currentState().color, stamp:drag?.piece?.stamp});
+  if (ghost) pieces.push({...ghost, ghost:true, color:drag ? drag.color : currentState().color});
   pieces.sort(artDepthOrder);
   const fragment = document.createDocumentFragment();
   for (const piece of pieces) {
     const b={...piece,...artCenter(piece)};
     const block = cube(b.x,b.y,b.color,artWidth,artDepth,artHeight);
-    if (b.stamp) {
-      const points=starOutline.map(([u,v])=>[b.x+u*14,b.y-artHeight/2+v*9]);
-      block.append(svgNode('polygon',{points,fill:'#fff2a4',stroke:'#875538','stroke-width':1.4,'pointer-events':'none'}));
-    }
     if (b.ghost) {
       block.setAttribute('opacity','.58');
       block.setAttribute('pointer-events','none');
@@ -101,6 +113,7 @@ function drawArt(ghost = null) {
     fragment.append(label);
   }
   artBoard.replaceChildren(fragment);
+  decorateArtBoard(artBoard);
 }
 function cancelDrag() {
   if (!drag) return;
@@ -112,7 +125,6 @@ function cancelDrag() {
 }
 function beginDrag(event, sourceColor) {
   if (active !== 'art' || artSpinning || !event.isPrimary || event.button !== 0) return;
-  if (artTool!=='build' && sourceColor) { chooseColor(sourceColor); return; }
   cancelDrag();
   event.preventDefault();
   const p = localPoint(event);
@@ -121,7 +133,7 @@ function beginDrag(event, sourceColor) {
   const capture = sourceColor ? event.currentTarget : artBoard;
   if (sourceColor) chooseColor(sourceColor);
   const center=piece ? artCenter(piece) : p;
-  drag = {pointer:event.pointerId, capture, piece, color:sourceColor || piece?.color || currentState().color,
+  drag = {pointer:event.pointerId, capture, piece, face:piece ? event.target.closest('[data-art-face]')?.dataset.artFace : null, color:sourceColor || piece?.color || currentState().color,
     source:!!sourceColor, picked:false, moved:false, startX:event.clientX, startY:event.clientY,
     offsetX:center.x-p.x, offsetY:center.y-p.y};
   if (piece) {
@@ -145,17 +157,18 @@ function moveDrag(event) {
   if (!p || (!drag.moved && Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)<6)) return;
   drag.moved=true;
   clearTimeout(drag.holdTimer);
-  if (drag.piece && artTool==='build' && event.pointerType==='mouse') drag.picked=true;
+  if (drag.piece && event.pointerType==='mouse') drag.picked=true;
   if (!drag.source && !drag.picked) return;
   const remaining=withoutMovingBlock(drag.piece);
   drawArt(withinBoard(p) ? dropLocation(intendedPoint(p),remaining) : null);
 }
-function placeArt(p,color,moving=null,stamp=false,tapped=null) {
+function placeArt(p,color,moving=null,tapped=null,face=null) {
   const pieces=withoutMovingBlock(moving);
-  const target=dropLocation(p,pieces,tapped);
+  const target=dropLocation(p,pieces,tapped,face);
+  if(!target){tell('그 면에는 나무가 붙어 있어요. 보이는 다른 면을 눌러요.');return;}
   if (moving && sameColumn(moving,target) && moving.level===target.level) return;
   saveUndo();
-  const piece={id:moving ? moving.id : nextArtId++,color,stamp,
+  const piece={id:moving ? moving.id : nextArtId++,color,
     col:target.col,row:target.row,level:target.level};
   if (moving) artBlocks.splice(0,artBlocks.length,...pieces);
   artBlocks.push(piece);
@@ -167,11 +180,9 @@ function finishDrag(event) {
   if (withinBoard(p)) {
     if (drag.picked) {
       const movedAway=Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>=6;
-      if (movedAway) placeArt(intendedPoint(p),drag.color,drag.piece,drag.piece.stamp);
-    } else if (artTool!=='build') {
-      if (!drag.moved) applyArtTool(p,drag.piece?.id);
+      if (movedAway) placeArt(intendedPoint(p),drag.color,drag.piece);
     } else if (drag.source || !drag.moved) {
-      placeArt(p,currentState().color,null,false,drag.piece);
+      placeArt(p,currentState().color,null,drag.piece,drag.face);
     }
   }
   cancelDrag();
@@ -190,18 +201,12 @@ artBoard.addEventListener('keydown', event => {
     event.preventDefault();
     const [dx,dy] = movements[event.key];
     const box=artBoard.viewBox.baseVal;
-    keyboardPoint = {x:Math.max(35,Math.min(525,keyboardPoint.x+dx)),y:Math.max(box.y+32,Math.min(341,keyboardPoint.y+dy))};
-    if (artTool==='build') drawArt(dropLocation(keyboardPoint));
-    else {
-      drawArt();
-      artBoard.append(svgNode('circle',{cx:keyboardPoint.x,cy:keyboardPoint.y,r:7,fill:'none',stroke:'#25476f','stroke-width':3,'pointer-events':'none'}));
-    }
+    keyboardPoint = {x:Math.max(box.x+artWidth,Math.min(box.x+box.width-artWidth,keyboardPoint.x+dx)),
+      y:Math.max(box.y+32,Math.min(box.y+box.height-32,keyboardPoint.y+dy))};
+    drawArt(dropLocation(keyboardPoint));
   } else if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
-    if (artTool==='build') placeArt(keyboardPoint,currentState().color,null,false,artBlockAt(keyboardPoint));
-    else {
-      applyArtTool(keyboardPoint,artBlockAt(keyboardPoint)?.id);
-    }
+    placeArt(keyboardPoint,currentState().color);
     updateBoard();
   }
 });

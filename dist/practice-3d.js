@@ -42,7 +42,7 @@ function floorCorners(x,z) {
 function occupied(x,y,z) {
   return x>=0 && x<size && z>=0 && z<size && y>=0 && y<currentState().stacks[z*size+x].length;
 }
-function projectBlock(x,level,z,color,view,group,hidden,stamp=false) {
+function projectBlock(x,level,z,color,view,group,hidden) {
   const vertices=Array.from({length:8},(_,i)=>view.point(x+(i&1),level+((i>>2)&1),z+((i>>1)&1)));
   for (const face of cubeFaces) {
     const [nx,ny,nz]=face.normal;
@@ -50,10 +50,6 @@ function projectBlock(x,level,z,color,view,group,hidden,stamp=false) {
     if (facing<.00001 || (hidden && hidden(nx,ny,nz))) continue;
     const points=face.corners.map(i=>vertices[i]);
     group.append(surface(points,{fill:paints[color][face.paint],stroke:paints[color].edge,'stroke-width':1.5,'data-face':face.name}));
-    if (stamp && face.name==='top') {
-      const points=starOutline.map(([u,v])=>view.point(x+.5+u*.31,level+1,z+.5+v*.31));
-      group.append(surface(points,{fill:'#fff2a4',stroke:'#875538','stroke-width':1.5,'pointer-events':'none'}));
-    }
     if (color==='wood' && Math.abs(ny)!==1 && facing>.25) {
       const [a,b,d]=[points[0],points[1],points[3]];
       const at=(u,v)=>[a[0]+(b[0]-a[0])*u+(d[0]-a[0])*v,a[1]+(b[1]-a[1])*u+(d[1]-a[1])*v];
@@ -68,7 +64,7 @@ function drawBlockBoard() {
   const view=sceneProjection(camera,[0,1.35,0],54,280,190);
   const fragment=document.createDocumentFragment(), blocks=[];
   const practice=active==='practice';
-  const step=practice ? stairStep() : 0, task=stairs[step];
+  const path=practice ? rabbitPath() : [];
   const above=view.eye[1]>.04;
   const project=points=>points.map(p=>view.point(...p));
   const boardCorners=[[-2,0,-2],[2,0,-2],[2,0,2],[-2,0,2]];
@@ -90,24 +86,24 @@ function drawBlockBoard() {
   for (const block of blocks.sort((a,b)=>a.depth-b.depth)) fragment.append(block.group);
   // Game guides are billboards. Hide them in face views to expose the actual silhouette.
   if (practice && above && camera.preset!=='top') {
-    if (task) {
-      const x=task.index%size-2,z=Math.floor(task.index/size)-2,height=state.practice.stacks[task.index].length;
-      const rim=floorCorners(x,z).map(([u,,v])=>view.point(u,height,v));
+    if (!rabbitChecked) {
+      const start=path[0], x=start%size-2,z=Math.floor(start/size)-2;
+      const rim=floorCorners(x,z).map(([u,,v])=>view.point(u,state.practice.stacks[start].length,v));
       fragment.append(surface(rim,{class:'target-cell'}));
-      const [px,py]=view.point(x+.5,height,z+.5);
-      fragment.append(boardLabel(px,py+4,task.height+'층'));
     }
-    const previous=stairs[Math.max(0,step-1)];
-    const [rabbitX,rabbitY]=step ? view.point(previous.index%size-1.5,previous.height,1.5) : view.point(-2.65,0,1.45);
+    const hop=rabbitChecked && rabbitRound===2 ? rabbitLeg : 0;
+    const at=path[hop], x=at%size-1.5,z=Math.floor(at/size)-1.5;
+    const [rabbitX,rabbitY]=view.point(x,state.practice.stacks[at].length,z);
     const rabbit=svgNode('g',{'pointer-events':'none'});
     rabbit.append(mascot('practice',rabbitX-19,rabbitY-39,39)); fragment.append(rabbit);
-    if (lastStepView && lastStepView.step<step && lastStepView.yaw===camera.yaw && lastStepView.pitch===camera.pitch && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (lastStepView && lastStepView.hop<hop && lastStepView.yaw===camera.yaw && lastStepView.pitch===camera.pitch && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const dx=lastStepView.x-rabbitX, dy=lastStepView.y-rabbitY;
       rabbit.animate([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'translate('+dx/2+'px,'+(dy/2-16)+'px)'},{transform:'translate(0,0)'}],{duration:360});
     }
-    lastStepView={step,x:rabbitX,y:rabbitY,yaw:camera.yaw,pitch:camera.pitch};
+    lastStepView={hop,x:rabbitX,y:rabbitY,yaw:camera.yaw,pitch:camera.pitch};
     if (!practiceDelivered) {
-      const [px,py]=view.point(1.08,3,1.4);
+      const goal=path.at(-1);
+      const [px,py]=view.point(goal%size-1.35,path.length,Math.floor(goal/size)-1.5);
       fragment.append(mascot('carrot',px-12,py-22,27));
     }
   }
@@ -141,7 +137,7 @@ function drawArtOrbit() {
   const model=[...artBlocks];
   if (!model.length) {
     artBoard.replaceChildren(boardLabel(280,190,'블록을 놓으면 여기서 돌려 볼 수 있어요.'));
-    updateViewControls();
+    decorateArtBoard(artBoard);updateViewControls();
     return;
   }
   const coords=model.map(b=>[b.col+.5,b.level+.5,b.row+.5]);
@@ -149,18 +145,18 @@ function drawArtOrbit() {
   for (const center of coords) center.forEach((n,i)=>{min[i]=Math.min(min[i],n);max[i]=Math.max(max[i],n);});
   const mid=min.map((n,i)=>(n+max[i])/2);
   const radius=Math.hypot(...max.map((n,i)=>n-mid[i]+.5));
-  const scale=Math.min(66,170/radius);
+  const scale=Math.min(66,170/(radius*1.3))*artStyle.scale;
   const view=sceneProjection(camera,mid,scale,280,190);
   const depth=b=>view.depth(b.col,b.level,b.row);
   model.sort((a,b)=>depth(a)-depth(b));
-  artBoard.replaceChildren(...model.map(b=>projectBlock(b.col,b.level,b.row,b.color,view,svgNode('g'),null,b.stamp)));
-  updateViewControls();
+  artBoard.replaceChildren(...model.map(b=>projectBlock(b.col,b.level,b.row,b.color,view,svgNode('g'),null)));
+  decorateArtBoard(artBoard);updateViewControls();
 }
 function setArtSpinning(value) {
   endOrbit();cancelDrag();
   artSpinning=value;
   if (value) Object.assign(camera,cameraPresets.home,{preset:'home'});
-  artBoard.setAttribute('aria-label',value ? '작품 회전판. 방향 버튼으로 보는 위치를 고를 수 있어요.' : '작업판. 방향키로 위치를 고르고 엔터로 도구를 써요.');
+  artBoard.setAttribute('aria-label',value ? '작품 회전판. 방향 버튼으로 보는 위치를 고를 수 있어요.' : '작업판. 방향키로 위치를 고르고 엔터로 나무를 붙여요.');
   updateBoard();
 }
 document.querySelector('#art-spin').addEventListener('click',()=>setArtSpinning(!artSpinning));

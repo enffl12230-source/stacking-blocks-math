@@ -40,7 +40,7 @@ function conceptExample(topic,choice) {
     const height=layerCount;
     blocks.push({pos:[1,0,0],color:'wood'});
     for (let y=1;y<height;y++) blocks.push({pos:[1,y,0],color:y===1?'red':'yellow'});
-    reading='오른쪽은 '+height+'층이에요. 왼쪽 나무까지 세면 모두 '+blocks.length+'개예요.';
+    reading='왼쪽에는 한 개가 있어요. 오른쪽은 '+height+'층이에요.';
   } else {
     blocks[0].label='가';
     blocks.push({pos:conceptOffsets[choice],color:'red',label:'나'});
@@ -117,6 +117,8 @@ function renderConcept() {
   }
   const example=conceptExample(conceptTopic,choice);
   drawConceptPicture(example);
+  document.querySelector('#concept-reading').hidden=conceptTopic==='layers';
+  document.querySelector('#layer-quiz').hidden=conceptTopic!=='layers';
   document.querySelector('#concept-reading').textContent=example.reading;
 }
 document.querySelector('#concept-topics').addEventListener('click',event=>{
@@ -133,11 +135,25 @@ document.querySelector('#concept-controls').addEventListener('click',event=>{
   endConceptDrag();
   const key=button.dataset.example;
   if (conceptTopic==='cube') conceptChoice.cube=key;
-  else if (conceptTopic==='layers') layerCount=Math.max(1,Math.min(3,layerCount+(key==='add' ? 1 : -1)));
+  else if (conceptTopic==='layers') {
+    layerCount=Math.max(1,Math.min(3,layerCount+(key==='add' ? 1 : -1)));
+    document.querySelector('#layer-quiz').reset();
+    document.querySelector('#layer-response').textContent='';
+  }
   else positionAnswer=key;
   renderConcept();
 });
 
+document.querySelector('#layer-quiz').addEventListener('submit',event=>{
+  event.preventDefault();
+  const input=document.querySelector('#layer-answer'), answer=input.value.trim();
+  const message=document.querySelector('#layer-response');
+  const numeric=/^\d+$/.test(answer), correct=numeric && Number(answer)===layerCount+1;
+  if (!numeric) message.textContent='센 개수를 숫자로 써 보세요.';
+  else if (correct) message.textContent='맞아요! 모두 '+(layerCount+1)+'개예요.';
+  else message.textContent='바닥에 있는 나무부터 하나씩 짚어 다시 세어 봐요.';
+  if (!correct) {input.focus();input.select();}
+});
 function placeConceptBlock(key) {
   conceptChoice.position=key;
   positionAnswer=null;

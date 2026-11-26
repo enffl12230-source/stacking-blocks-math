@@ -10,9 +10,9 @@ const questions = [
   {text:'맨 앞줄 왼쪽 끝에 한 개를 놓아요. 한 칸 뒤로, 한 칸 오른쪽으로 가서 두 개를 쌓아요. 거기서 다시 한 칸 뒤로, 한 칸 오른쪽으로 가서 세 개를 쌓아요.', hint:'위에서 보면 세 탑이 비스듬히 이어져요.', answer:[[12,1],[9,2],[6,3]]}
 ];
 const lessons = {
-  practice:{title:'토끼의 당근 계단', instruction:'격자를 톡 눌러 세 층까지 쌓아요. 판을 꾹 누른 채 끌면 빙글빙글 돌아가요.', reflect:'토끼가 있는 자리와 당근이 있는 자리를 친구에게 말해 보세요.'},
+  practice:{title:'토끼의 당근 계단', instruction:'격자를 톡 눌러 세 층까지 쌓아요. 판을 꾹 누른 채 끌면 빙글빙글 돌아가요.', reflect:'마지막에는 토끼가 당근을 찾도록 1층부터 가는 길을 말해 줘요.'},
   quiz:{title:'별빛 보물찾기', instruction:'단서대로 쌓고 판을 돌려 살펴봐요. 단서를 처음 맞히면 미술 도구를 살 별빛 크레딧을 받아요.', reflect:'별이 숨은 곳을 찾기 어려우면 ‘토끼 힌트’를 눌러요.'},
-  art:{title:'축제 장난감 가게', instruction:'색을 고르고 빈 곳을 톡 눌러요. 블록을 톡 누르면 위로 쌓고, 꾹 누른 채 끌면 옮겨요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
+  art:{title:'축제 장난감 가게', instruction:'색을 고르고 빈 곳을 톡 눌러요. 윗면을 누르면 위에, 옆면을 누르면 그 옆에 붙어요. 꾹 누른 채 끌면 옮겨요.', reflect:'블록의 위치를 넣어 친구에게 내 장난감을 소개해요.'}
 };
 const state = Object.fromEntries(Object.keys(lessons).map(key => [key,{
   color:'wood', mode:'add', stacks:emptyBoard(), history:[], message:''
@@ -25,7 +25,7 @@ function tell(message) {
 }
 function saveUndo() {
   const s = currentState();
-  const items = active === 'art' ? artBlocks : s.stacks;
+  const items = active === 'art' ? {blocks:artBlocks,style:artStyle} : s.stacks;
   s.history.push(JSON.stringify(items));
   if (s.history.length > 80) s.history.shift();
 }
@@ -56,6 +56,7 @@ function changeStack(index, fromKeyboard = false) {
   const s = currentState(), stack = s.stacks[index];
   if (s.mode === 'add' && stack.length === maxLayers) { tell('이 칸은 벌써 세 층이에요. 다른 칸에 쌓아 보세요.'); return; }
   if (s.mode === 'remove' && !stack.length) { tell('여기는 빈 칸이에요. 블록이 있는 칸을 눌러 보세요.'); return; }
+  if(active==='practice' && !practiceDelivered) resetRabbitAnswer();
   if (active==='quiz') questHintCell=null;
   saveUndo();
   if (s.mode === 'add') stack.push(s.color);
@@ -98,7 +99,7 @@ function updateBoard() {
   if (art && count) countLabel+=' · 가장 높은 탑 '+artBlocks.reduce((h,b)=>Math.max(h,b.level+1),0)+'층';
   $('#count').textContent=countLabel;
   $('#undo').disabled = !s.history.length;
-  $('#clear').disabled = count === 0;
+  $('#clear').disabled = count===0 && !(art && (artStyle.bubble || artStyle.background!=='plain' || artStyle.scale!==1));
   $('#orientation').textContent = art ? (artSpinning ? '작품을 끌어 돌려요. 다 보았으면 ‘다시 꾸미기’를 눌러요.' : toolInstruction()) :
     (active==='quiz' ? '칸을 톡 누르면 쌓이고, 판을 끌면 돌아가요. ‘내 앞’이 맨 앞줄이에요.' : '끌어서 돌리거나 네 방향 버튼을 눌러요.');
   updateViewControls();
@@ -114,6 +115,7 @@ function showQuestion() {
   renderMission();
 }
 function reopenQuestion() {
+  if(active==='practice' && !practiceDelivered)resetRabbitAnswer();
   if (active !== 'quiz') return;
   solved = false; questHintCell=null; chestOpened=false;showQuestion();
 }
@@ -174,18 +176,21 @@ $('#modes').addEventListener('click',event => {
 });
 $('#view-toggle').addEventListener('click',() => setBoardCamera(camera.preset==='top' ? 'home' : 'top'));
 $('#clear').addEventListener('click',() => {
-  if (active==='art') { cancelDrag();copySource=null; }
+  if (active==='art') cancelDrag();
   saveUndo();
-  if (active === 'art') artBlocks.length = 0;
+  if (active === 'art') {artBlocks.length=0;artStyle={...defaultArtStyle};refreshShop();}
   else currentState().stacks = emptyBoard();
   reopenQuestion(); tell('모두 비웠어요. 되돌리면 다시 볼 수 있어요.'); updateBoard();
 });
 $('#undo').addEventListener('click',() => {
   const s = currentState();
   if (!s.history.length) return;
-  if (active==='art') { cancelDrag();copySource=null; }
+  if (active==='art') cancelDrag();
   const previous = JSON.parse(s.history.pop());
-  if (active === 'art') artBlocks.splice(0,artBlocks.length,...previous);
+  if (active === 'art') {
+    artBlocks.splice(0,artBlocks.length,...(previous.blocks || previous));
+    artStyle={...defaultArtStyle,...previous.style};refreshShop();
+  }
   else s.stacks = previous;
   reopenQuestion(); tell('한 번 되돌렸어요.'); updateBoard();
 });
@@ -195,6 +200,7 @@ function route(moveFocus) {
   if ($('#reward').open) $('#reward').close();
   cancelDrag();
   artSpinning=false;
+  const previousRoute=active;
   const name = location.hash.slice(1) || 'concepts';
   const concepts = name==='concepts';
   if (concepts && Object.hasOwn(lessons,active)) {
@@ -214,6 +220,12 @@ function route(moveFocus) {
   document.title = home ? '쌓기나무 놀이터' : (concepts ? '쌓기나무 개념' : lessons[active].title)+' · 쌓기나무 놀이터';
   if (concepts) renderConcept();
   if (!home && !concepts) {
+    if(active==='practice' && (!rabbitSet.length || previousRoute==='home')) {
+      newRabbitSet();
+      Object.assign(state.practice,{stacks:emptyBoard(),history:[],mode:'add',message:''});
+      Object.assign(boardCameras.practice,cameraPresets.home,{preset:'home'});
+    }
+    $('#talk-open').hidden=active==='practice';
     camera = boardCameras[active];
     const art = active === 'art', quiz = active === 'quiz';
     $('#activity-title').textContent = lessons[active].title;
@@ -230,7 +242,7 @@ function route(moveFocus) {
     artBoard.classList.toggle('art-board',art);
     if (art) {
       artBoard.setAttribute('tabindex','0');
-      artBoard.setAttribute('aria-label','작업판. 방향키로 위치를 고르고 엔터로 도구를 써요.');
+      artBoard.setAttribute('aria-label','작업판. 방향키로 위치를 고르고 엔터로 나무를 붙여요.');
     } else { artBoard.removeAttribute('tabindex'); artBoard.removeAttribute('aria-label'); }
     for (const el of $('#palette').children) {
       el.hidden=!art && !['wood','red','yellow'].includes(el.dataset.color);

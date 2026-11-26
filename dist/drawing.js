@@ -19,16 +19,16 @@ function cube(x, y, color, w, d, h) {
   const p = paints[color];
   const top = y - h / 2, bottom = top + h;
   const group = svgNode('g', { 'stroke-linejoin': 'round' });
-  const face = (points, fill) => svgNode('polygon', { points, fill, stroke: p.edge, 'stroke-width': Math.max(.5, w / 65) });
+  const face = (points, fill, side) => svgNode('polygon', { points, fill, 'data-art-face':side, stroke: p.edge, 'stroke-width': Math.max(.5, w / 65) });
   group.append(
-    face([[x-w,top], [x,top+d], [x,bottom+d], [x-w,bottom]], p.left),
-    face([[x,top+d], [x+w,top], [x+w,bottom], [x,bottom+d]], p.right),
-    face([[x,top-d], [x+w,top], [x,top+d], [x-w,top]], p.top)
+    face([[x-w,top], [x,top+d], [x,bottom+d], [x-w,bottom]], p.left,'left'),
+    face([[x,top+d], [x+w,top], [x+w,bottom], [x,bottom+d]], p.right,'right'),
+    face([[x,top-d], [x+w,top], [x,top+d], [x-w,top]], p.top,'top')
   );
   if (color === 'wood') {
     const grain = svgNode('path', {
       d: 'M ' + (x-.75*w) + ' ' + (top+.32*h) + ' q ' + (.14*w) + ' 0 ' + (.32*w) + ' ' + (.22*d) + ' t ' + (.24*w) + ' ' + (.16*d),
-      fill:'none', stroke:p.edge, opacity:'.48', 'stroke-width': Math.max(.7, w/40), 'stroke-linecap':'round'
+      fill:'none', 'pointer-events':'none', stroke:p.edge, opacity:'.48', 'stroke-width': Math.max(.7, w/40), 'stroke-linecap':'round'
     });
     group.append(grain);
   }

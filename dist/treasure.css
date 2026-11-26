@@ -46,7 +46,7 @@
 [data-quest=play] #quiz-actions button { flex:1 1 auto; }
 .quest-win .reward-body { color:#fff4dd; background:radial-gradient(ellipse at top,#495371,#25354e 70%); }
 .quest-win .reward-body h2 { color:#ffe194; }
-.quest-win #reward-art svg { padding:8px; background:#fff0b326; border-radius:50%; }
+.quest-win #reward-art > svg { padding:8px; background:#fff0b326; border-radius:50%; }
 .quest-win #reward-stay { color:#30405d; }
 .quest-win #reward-shop { margin:0; color:#3a3040; background:#ffce72; }
 @media(min-width:900px){
